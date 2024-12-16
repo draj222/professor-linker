@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ interface FormData {
 }
 
 export const MultiStepForm = ({ onSubmit }: { onSubmit: (data: FormData) => void }) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -42,6 +44,7 @@ export const MultiStepForm = ({ onSubmit }: { onSubmit: (data: FormData) => void
     }
     if (step === 2) {
       onSubmit(formData);
+      navigate('/loading');
     } else {
       setStep(step + 1);
     }
