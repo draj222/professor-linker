@@ -134,7 +134,9 @@ export const MultiStepForm = ({ onSubmit }: { onSubmit: (data: FormData) => void
         )}
         <Button
           onClick={handleNext}
-          className="ml-auto glass-panel"
+          className={`${step === 1 ? 'ml-auto' : ''} glass-panel px-8 py-2 text-lg font-semibold ${
+            step === 2 ? 'bg-primary hover:bg-primary/90 text-white w-full' : ''
+          }`}
         >
           {step === 2 ? 'Submit' : 'Next'}
         </Button>
