@@ -30,12 +30,11 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
           ...prof,
           generatedEmail: prof.generatedEmail.replace('[Your name]', user.user_metadata.full_name)
         }));
+        // Update selected professor with the new email if one is selected
         if (selectedProfessor) {
-          const updatedSelectedProfessor = updatedResults.find(
-            prof => prof.email === selectedProfessor.email
-          );
-          if (updatedSelectedProfessor) {
-            setSelectedProfessor(updatedSelectedProfessor);
+          const updatedProfessor = updatedResults.find(p => p.email === selectedProfessor.email);
+          if (updatedProfessor) {
+            setSelectedProfessor(updatedProfessor);
           }
         }
       }
@@ -44,9 +43,12 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
   }, [results, selectedProfessor]);
 
   const handleProfessorSelect = (professor: Professor, index: number) => {
-    // Update both the selected professor and flipped card state
-    setSelectedProfessor(professor);
-    setFlippedCard(flippedCard === index ? null : index);
+    // Always update both states together
+    const newSelectedProfessor = results.find(p => p.email === professor.email);
+    if (newSelectedProfessor) {
+      setSelectedProfessor(newSelectedProfessor);
+      setFlippedCard(flippedCard === index ? null : index);
+    }
   };
 
   const copyToClipboard = async (text: string) => {
