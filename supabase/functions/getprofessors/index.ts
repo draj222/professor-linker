@@ -36,6 +36,8 @@ Format the response as a JSON array of objects with these fields: name, email, p
 
 Make sure each professor's details are realistic and their research aligns with ${fieldOfInterest}. Use actual university email domains and realistic academic titles.`;
 
+    console.log("Sending request to OpenAI...");
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -47,16 +49,26 @@ Make sure each professor's details are realistic and their research aligns with 
         messages: [
           { 
             role: 'system', 
-            content: 'You are an expert in academic research and university faculty. You provide detailed, accurate information about professors and their research work.' 
+            content: 'You are an expert in academic research and university faculty. Generate detailed, accurate information about professors and their research work in JSON format.' 
           },
-          { role: 'user', content: prompt }
+          { 
+            role: 'user', 
+            content: prompt 
+          }
         ],
-        temperature: 0.7
+        temperature: 0.7,
+        response_format: { type: "json_object" }  // Ensure JSON response
       }),
     });
 
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+
     const data = await response.json();
-    console.log("Received response from OpenAI");
+    console.log("Received response from OpenAI:", data);
 
     if (!data.choices || !data.choices[0]?.message?.content) {
       console.error('Invalid OpenAI response:', data);
@@ -68,9 +80,10 @@ Make sure each professor's details are realistic and their research aligns with 
     
     try {
       professors = JSON.parse(generatedContent);
-      console.log(`Successfully generated ${professors.length} professors`);
+      console.log(`Successfully parsed professor data. Generated ${professors.length} professors`);
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);
+      console.error('Raw content:', generatedContent);
       throw new Error('Failed to parse professor data');
     }
 
