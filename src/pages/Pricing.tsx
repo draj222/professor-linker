@@ -36,8 +36,8 @@ const PricingPage = () => {
       toast.info("Starting to generate personalized emails...");
       
       try {
-        // Get the field of interest from localStorage (set during form submission)
-        const fieldOfInterest = localStorage.getItem("fieldOfInterest") || "";
+        const fieldOfInterest = localStorage.getItem("fieldOfInterest");
+        
         if (!fieldOfInterest) {
           toast.error("Please complete the form first to specify your field of interest.");
           navigate("/");
@@ -47,9 +47,10 @@ const PricingPage = () => {
         const professors = await generatePersonalizedEmails(fieldOfInterest);
         
         if (professors && professors.length > 0) {
-          // Store the results in localStorage for the results page
+          // Store the results and navigate
           localStorage.setItem("generatedProfessors", JSON.stringify(professors));
-          navigate("/results");
+          // Use replace instead of navigate to prevent going back to pricing
+          navigate("/results", { replace: true });
         } else {
           toast.error("No professors were generated. Please try again.");
         }
