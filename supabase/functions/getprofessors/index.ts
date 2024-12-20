@@ -77,14 +77,16 @@ serve(async (req) => {
                 - Request an opportunity to learn more about their research or possibly shadow/intern
                 - Use proper grammar and punctuation
                 - Always address them as "Dr." followed by their last name
-                - Be exactly 200 words` 
+                - Be exactly 200 words
+                - Never use placeholders like [Your Name], always use the actual name provided` 
               },
               { 
                 role: 'user', 
                 content: `Write an email to Dr. ${prof.name} at ${prof.institution}.
                 The email should be from ${userName}, a high school student interested in ${fieldOfInterest}.
                 Their recent work focuses on: ${prof.recentWork}
-                Make it exactly 200 words, formal, and enthusiastic.`
+                Make it exactly 200 words, formal, and enthusiastic.
+                Use the name "${userName}" in the email signature, not [Your Name] or any other placeholder.`
               }
             ],
             temperature: 0.7,
