@@ -49,8 +49,7 @@ export const MultiStepForm = () => {
       localStorage.setItem('fieldOfInterest', fieldOfInterest);
       
       console.log('Navigating to pricing page...');
-      // Navigate to pricing page using replace to prevent going back
-      navigate('/pricing', { replace: true });
+      navigate('/pricing');
       
     } catch (error) {
       console.error('Error:', error);
