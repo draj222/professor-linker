@@ -22,11 +22,15 @@ interface SecretResponse {
   secret: string;
 }
 
+interface SecretParams {
+  name: string;
+}
+
 export const generatePersonalizedEmails = async (fieldOfInterest: string): Promise<Professor[]> => {
   try {
     console.log("Generating emails for field:", fieldOfInterest);
     
-    const { data: secretData, error: secretError } = await supabase.rpc<SecretResponse>('get_secret', {
+    const { data: secretData, error: secretError } = await supabase.rpc<SecretResponse, SecretParams>('get_secret', {
       name: 'OPENAI_API_KEY'
     });
 
