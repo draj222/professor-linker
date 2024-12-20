@@ -19,6 +19,7 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
   const [isSending, setIsSending] = useState(false);
   const [userName, setUserName] = useState('');
   const [flippedCard, setFlippedCard] = useState<number | null>(null);
+  const [processedResults, setProcessedResults] = useState<Professor[]>(results);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -30,23 +31,16 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
           ...prof,
           generatedEmail: prof.generatedEmail.replace('[Your name]', user.user_metadata.full_name)
         }));
-        // Update selected professor with the new email if one is selected
-        if (selectedProfessor) {
-          const updatedProfessor = updatedResults.find(p => p.email === selectedProfessor.email);
-          if (updatedProfessor) {
-            setSelectedProfessor(updatedProfessor);
-          }
-        }
+        setProcessedResults(updatedResults);
       }
     };
     getUserName();
-  }, [results, selectedProfessor]);
+  }, [results]); // Only depend on results, not on selectedProfessor
 
   const handleProfessorSelect = (professor: Professor, index: number) => {
-    // Always update both states together
-    const newSelectedProfessor = results.find(p => p.email === professor.email);
-    if (newSelectedProfessor) {
-      setSelectedProfessor(newSelectedProfessor);
+    const selectedProf = processedResults.find(p => p.email === professor.email);
+    if (selectedProf) {
+      setSelectedProfessor(selectedProf);
       setFlippedCard(flippedCard === index ? null : index);
     }
   };
@@ -115,7 +109,7 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <ProfessorList
-          professors={results}
+          professors={processedResults}
           selectedProfessor={selectedProfessor}
           flippedCard={flippedCard}
           onProfessorSelect={handleProfessorSelect}
