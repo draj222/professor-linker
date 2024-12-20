@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Professor {
   name: string;
@@ -14,6 +15,7 @@ interface Professor {
 
 export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
   const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
 
   const copyToClipboard = async (text: string) => {
@@ -29,6 +31,50 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
         description: "Failed to copy email",
         variant: "destructive",
       });
+    }
+  };
+
+  const sendEmail = async () => {
+    if (!selectedProfessor) return;
+
+    setIsSending(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userEmail = userData.user?.email;
+
+      if (!userEmail) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to send emails",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('sendemail', {
+        body: {
+          from: userEmail,
+          to: [selectedProfessor.email],
+          subject: "Research Opportunity Inquiry",
+          html: selectedProfessor.generatedEmail,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Email sent successfully",
+      });
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -73,12 +119,22 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
                   </div>
                 </ScrollArea>
               </div>
-              <Button
-                onClick={() => copyToClipboard(selectedProfessor.generatedEmail)}
-                className="w-full mt-4"
-              >
-                Copy Email
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => copyToClipboard(selectedProfessor.generatedEmail)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Copy Email
+                </Button>
+                <Button
+                  onClick={sendEmail}
+                  className="flex-1"
+                  disabled={isSending}
+                >
+                  {isSending ? 'Sending...' : 'Send Email'}
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground">
