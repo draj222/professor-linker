@@ -1,7 +1,25 @@
 import { MultiStepForm } from '@/components/MultiStepForm';
-import { ResultsDisplay } from '@/components/ResultsDisplay';
+import { Login } from '@/components/Login';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Check current auth status
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-900 to-black">
       <div className="max-w-7xl mx-auto">
@@ -14,7 +32,7 @@ const Index = () => {
           </p>
         </div>
 
-        <MultiStepForm />
+        {user ? <MultiStepForm /> : <Login />}
       </div>
     </div>
   );
