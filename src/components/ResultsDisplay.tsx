@@ -44,12 +44,14 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
   }, [results, selectedProfessor]);
 
   const handleCardClick = (professor: Professor, index: number) => {
+    // If clicking the same card, just toggle the flip
     if (flippedCard === index) {
       setFlippedCard(null);
     } else {
+      // If clicking a different card, update both the flip and selection
       setFlippedCard(index);
+      setSelectedProfessor(professor);
     }
-    setSelectedProfessor(professor);
   };
 
   const copyToClipboard = async (text: string) => {
