@@ -10,21 +10,29 @@ interface Professor {
   generatedEmail: string;
 }
 
+interface OpenAIResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
 export const generatePersonalizedEmails = async (fieldOfInterest: string): Promise<Professor[]> => {
   try {
     console.log("Generating emails for field:", fieldOfInterest);
     
     // Get the OpenAI API key from Supabase with proper typing
-    const { data, error: secretError } = await supabase.rpc('get_secret', {
+    const { data: secretData, error: secretError } = await supabase.rpc('get_secret', {
       name: 'OPENAI_API_KEY'
-    }) as { data: { secret: string } | null, error: Error | null };
+    });
 
-    if (secretError || !data?.secret) {
+    if (secretError || !secretData?.secret) {
       console.error("Error getting OpenAI API key:", secretError);
       throw new Error("Failed to get OpenAI API key");
     }
 
-    const OPENAI_API_KEY = data.secret;
+    const OPENAI_API_KEY = secretData.secret;
 
     const systemPrompt = `You are an AI assistant helping to generate a list of 100 professors and their details, 
     along with personalized emails for academic outreach in the field of ${fieldOfInterest}. 
@@ -39,7 +47,7 @@ export const generatePersonalizedEmails = async (fieldOfInterest: string): Promi
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Generate 100 professors' information and personalized emails for ${fieldOfInterest}. 
@@ -57,8 +65,8 @@ export const generatePersonalizedEmails = async (fieldOfInterest: string): Promi
       throw new Error('Failed to generate emails');
     }
 
-    const data = await response.json();
-    const professors: Professor[] = JSON.parse(data.choices[0].message.content);
+    const responseData = await response.json() as OpenAIResponse;
+    const professors: Professor[] = JSON.parse(responseData.choices[0].message.content);
     
     console.log("Successfully generated emails for", professors.length, "professors");
     return professors;
