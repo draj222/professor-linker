@@ -29,11 +29,18 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
           ...prof,
           generatedEmail: prof.generatedEmail.replace('[Your name]', user.user_metadata.full_name)
         }));
-        setSelectedProfessor(null); // Reset selection to avoid stale data
+        // Update the selected professor if one is selected
+        if (selectedProfessor) {
+          const updatedSelectedProfessor = {
+            ...selectedProfessor,
+            generatedEmail: selectedProfessor.generatedEmail.replace('[Your name]', user.user_metadata.full_name)
+          };
+          setSelectedProfessor(updatedSelectedProfessor);
+        }
       }
     };
     getUserName();
-  }, [results]);
+  }, [results, selectedProfessor]);
 
   const copyToClipboard = async (text: string) => {
     try {
