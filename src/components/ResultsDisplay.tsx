@@ -23,16 +23,42 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const getUserName = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.user_metadata?.full_name) {
-        setUserName(user.user_metadata.full_name);
-        // No need to replace [Your name] anymore as it's handled in the Edge Function
-        setProcessedResults(results);
+    const getUserProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Fetch the user's profile from the profiles table
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .single();
+
+          if (error) throw error;
+          
+          if (profile?.full_name) {
+            console.log('Retrieved user full name:', profile.full_name);
+            setUserName(profile.full_name);
+            // Process the results with the actual user name
+            const processed = results.map(result => ({
+              ...result,
+              generatedEmail: result.generatedEmail.replace('[Your name]', profile.full_name)
+            }));
+            setProcessedResults(processed);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load user profile information",
+          variant: "destructive",
+        });
       }
     };
-    getUserName();
-  }, [results]);
+
+    getUserProfile();
+  }, [results, toast]);
 
   const handleProfessorSelect = (professor: Professor, index: number) => {
     const selectedProf = processedResults.find(p => p.email === professor.email);
