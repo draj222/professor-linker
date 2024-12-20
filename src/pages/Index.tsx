@@ -58,20 +58,20 @@ ${formData.name}`
   };
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-900 to-black">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
+          <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
             Academic Outreach Assistant
           </h1>
-          <p className="mt-3 text-xl text-gray-500 sm:mt-5">
+          <p className="mt-3 text-xl text-blue-200 sm:mt-5">
             Connect with professors and researchers in your field of interest
           </p>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-400"></div>
           </div>
         ) : results ? (
           <ResultsDisplay results={results} />
