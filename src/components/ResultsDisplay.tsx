@@ -11,12 +11,14 @@ interface Professor {
   position: string;
   institution: string;
   generatedEmail: string;
+  recentWork: string;
 }
 
 export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
   const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [userName, setUserName] = useState('');
+  const [flippedCard, setFlippedCard] = useState<number | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -24,12 +26,10 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.user_metadata?.full_name) {
         setUserName(user.user_metadata.full_name);
-        // Update the emails with the user's name
         const updatedResults = results.map(prof => ({
           ...prof,
           generatedEmail: prof.generatedEmail.replace('[Your name]', user.user_metadata.full_name)
         }));
-        // Update the selected professor if one is selected
         if (selectedProfessor) {
           const updatedSelectedProfessor = {
             ...selectedProfessor,
@@ -41,6 +41,15 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
     };
     getUserName();
   }, [results, selectedProfessor]);
+
+  const handleCardClick = (professor: Professor, index: number) => {
+    if (flippedCard === index) {
+      setFlippedCard(null);
+    } else {
+      setFlippedCard(index);
+    }
+    setSelectedProfessor(professor);
+  };
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -110,17 +119,38 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
           <ScrollArea className="h-[520px] pr-4">
             <div className="space-y-4">
               {results.map((professor, index) => (
-                <Card
+                <div
                   key={index}
-                  className={`p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                    selectedProfessor === professor ? 'ring-2 ring-primary' : ''
-                  }`}
-                  onClick={() => setSelectedProfessor(professor)}
+                  className={`relative w-full h-48 cursor-pointer perspective-1000`}
+                  onClick={() => handleCardClick(professor, index)}
                 >
-                  <h4 className="font-medium">{professor.name}</h4>
-                  <p className="text-sm text-muted-foreground">{professor.position}</p>
-                  <p className="text-sm text-muted-foreground">{professor.institution}</p>
-                </Card>
+                  <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${
+                    flippedCard === index ? 'rotate-y-180' : ''
+                  }`}>
+                    {/* Front of card */}
+                    <Card
+                      className={`absolute w-full h-full p-4 backface-hidden ${
+                        selectedProfessor === professor ? 'ring-2 ring-primary' : ''
+                      }`}
+                    >
+                      <h4 className="font-medium">{professor.name}</h4>
+                      <p className="text-sm text-muted-foreground">{professor.position}</p>
+                      <p className="text-sm text-muted-foreground">{professor.institution}</p>
+                    </Card>
+                    
+                    {/* Back of card */}
+                    <Card
+                      className="absolute w-full h-full p-4 backface-hidden rotate-y-180 bg-primary/5"
+                    >
+                      <h4 className="font-medium mb-2">Recent Work</h4>
+                      <p className="text-sm text-muted-foreground">{professor.recentWork}</p>
+                      <div className="mt-2">
+                        <h4 className="font-medium mb-1">Contact</h4>
+                        <p className="text-sm text-muted-foreground">{professor.email}</p>
+                      </div>
+                    </Card>
+                  </div>
+                </div>
               ))}
             </div>
           </ScrollArea>
