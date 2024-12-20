@@ -33,7 +33,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
           { 
@@ -41,7 +41,8 @@ serve(async (req) => {
             content: `Generate a list of professors specializing in ${fieldOfInterest}. Include their name, email (using real university domains), position, institution, and a brief description of their recent work. Make it realistic and focused on top universities.` 
           }
         ],
-        temperature: 0.7
+        temperature: 0.7,
+        response_format: { type: "json_object" }  // Ensure JSON response
       }),
     });
 
