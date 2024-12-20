@@ -50,7 +50,7 @@ export const MultiStepForm = () => {
       
       console.log('Navigating to pricing page...');
       // Navigate to pricing page using replace to prevent going back
-      navigate('/pricing');
+      navigate('/pricing', { replace: true });
       
     } catch (error) {
       console.error('Error:', error);
