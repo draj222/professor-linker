@@ -8,6 +8,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const systemPrompt = `You are an expert in academic research and university faculty. Generate a list of professors who specialize in the given field. Return the response as a JSON array of objects, where each object has the following properties: name, email, position, institution, and recentWork. Make sure to use real university domains for emails and focus on top universities.`;
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -22,7 +24,9 @@ serve(async (req) => {
       throw new Error('Field of interest is required');
     }
 
-    const systemPrompt = `You are an expert in academic research and university faculty. Generate a list of 50 professors who specialize in ${fieldOfInterest}. For each professor, include their name, email, position, institution, and a brief description of their recent work. Format the response as an array of objects.`;
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key is not configured');
+    }
 
     console.log("Sending request to OpenAI...");
     
@@ -42,7 +46,7 @@ serve(async (req) => {
           }
         ],
         temperature: 0.7,
-        response_format: { type: "json_object" }  // Ensure JSON response
+        response_format: { type: "json_object" }
       }),
     });
 
@@ -69,11 +73,8 @@ serve(async (req) => {
       // The response might be a string that needs parsing, or might already be an object
       professors = typeof generatedContent === 'string' ? JSON.parse(generatedContent) : generatedContent;
       
-      // Ensure it's an array
-      if (!Array.isArray(professors)) {
-        // If it's an object with a data/results property, try to extract the array
-        professors = professors.data || professors.results || professors.professors || [];
-      }
+      // Ensure we have an array of professors
+      professors = professors.professors || professors.data || professors.results || [];
 
       // Generate personalized emails for each professor
       professors = professors.map(prof => ({
@@ -93,9 +94,15 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Error in getprofessors function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }), 
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });
