@@ -18,16 +18,19 @@ interface OpenAIResponse {
   }>;
 }
 
+interface SecretResponse {
+  secret: string;
+}
+
 export const generatePersonalizedEmails = async (fieldOfInterest: string): Promise<Professor[]> => {
   try {
     console.log("Generating emails for field:", fieldOfInterest);
     
-    // Get the OpenAI API key from Supabase
-    const { data: secretData, error: secretError } = await supabase.rpc('get_secret', {
+    const { data: secretData, error: secretError } = await supabase.rpc<SecretResponse>('get_secret', {
       name: 'OPENAI_API_KEY'
     });
 
-    if (secretError || !secretData?.secret) {
+    if (secretError || !secretData) {
       console.error("Error getting OpenAI API key:", secretError);
       throw new Error("Failed to get OpenAI API key");
     }
