@@ -72,6 +72,13 @@ export const Navbar = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  const handleFieldOfInterestUpdate = (newValue: string) => {
+    setUserDetails(prev => ({
+      ...prev,
+      fieldOfInterest: newValue
+    }));
+  };
+
   // Only show navbar if user is authenticated AND has a plan
   if (!isAuthenticated || !hasPlan) {
     return null;
