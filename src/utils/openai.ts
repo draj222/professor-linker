@@ -1,3 +1,6 @@
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
 interface Professor {
   name: string;
   email: string;
@@ -11,30 +14,44 @@ export const generatePersonalizedEmails = async (fieldOfInterest: string): Promi
   try {
     console.log("Generating emails for field:", fieldOfInterest);
     
+    // Get the OpenAI API key from Supabase
+    const { data: { secret: OPENAI_API_KEY }, error: secretError } = await supabase.rpc('get_secret', {
+      name: 'OPENAI_API_KEY'
+    });
+
+    if (secretError || !OPENAI_API_KEY) {
+      console.error("Error getting OpenAI API key:", secretError);
+      throw new Error("Failed to get OpenAI API key");
+    }
+
     const systemPrompt = `You are an AI assistant helping to generate a list of 100 professors and their details, 
     along with personalized emails for academic outreach in the field of ${fieldOfInterest}. 
     For each professor, include their name, email, position, institution, and a specific recent research project.
-    Make the data realistic but varied across different universities and research areas within ${fieldOfInterest}.`;
+    Make the data realistic but varied across different universities and research areas within ${fieldOfInterest}.
+    The professors should be from real universities and their research projects should be based on real academic work.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Generate 100 professors' information and personalized emails for ${fieldOfInterest}. 
             Format as JSON array with name, email, position, institution, recentWork, and generatedEmail fields.
-            Make emails professional, mentioning their specific work, and expressing genuine interest in their research.` }
+            Make emails professional, mentioning their specific work, and expressing genuine interest in their research.
+            Include real research projects and publications from their field.` }
         ],
         temperature: 0.7,
       }),
     });
 
     if (!response.ok) {
+      const errorData = await response.json();
+      console.error("OpenAI API error:", errorData);
       throw new Error('Failed to generate emails');
     }
 

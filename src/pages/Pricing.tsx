@@ -38,12 +38,20 @@ const PricingPage = () => {
       try {
         // Get the field of interest from localStorage (set during form submission)
         const fieldOfInterest = localStorage.getItem("fieldOfInterest") || "";
+        if (!fieldOfInterest) {
+          toast.error("Please complete the form first to specify your field of interest.");
+          navigate("/");
+          return;
+        }
+
         const professors = await generatePersonalizedEmails(fieldOfInterest);
         
-        if (professors.length > 0) {
+        if (professors && professors.length > 0) {
           // Store the results in localStorage for the results page
           localStorage.setItem("generatedProfessors", JSON.stringify(professors));
           navigate("/results");
+        } else {
+          toast.error("No professors were generated. Please try again.");
         }
       } catch (error) {
         console.error("Error in handleGetStarted:", error);
