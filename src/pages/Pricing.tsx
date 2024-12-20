@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { generatePersonalizedEmails } from "@/utils/openai";
 import { toast } from "sonner";
 
 const PricingPage = () => {
@@ -33,33 +32,15 @@ const PricingPage = () => {
   const handleGetStarted = async (plan: string) => {
     if (plan === "Basic") {
       setIsGenerating(true);
-      toast.info("Starting to generate personalized emails...");
       
-      try {
-        const fieldOfInterest = localStorage.getItem("fieldOfInterest");
-        
-        if (!fieldOfInterest) {
-          toast.error("Please complete the form first to specify your field of interest.");
-          navigate("/");
-          return;
-        }
-
-        const professors = await generatePersonalizedEmails(fieldOfInterest);
-        
-        if (professors && professors.length > 0) {
-          // Store the results and navigate
-          localStorage.setItem("generatedProfessors", JSON.stringify(professors));
-          // Use replace instead of navigate to prevent going back to pricing
-          navigate("/results", { replace: true });
-        } else {
-          toast.error("No professors were generated. Please try again.");
-        }
-      } catch (error) {
-        console.error("Error in handleGetStarted:", error);
-        toast.error("Failed to generate emails. Please try again.");
-      } finally {
-        setIsGenerating(false);
+      const fieldOfInterest = localStorage.getItem("fieldOfInterest");
+      if (!fieldOfInterest) {
+        toast.error("Please complete the form first to specify your field of interest.");
+        navigate("/");
+        return;
       }
+
+      navigate("/generating");
     } else {
       toast.info("Coming soon! Only Basic plan is available now.");
     }

@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Loading from "./pages/Loading";
 import Pricing from "./pages/Pricing";
 import Results from "./pages/Results";
+import GeneratingResults from "./pages/GeneratingResults";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/loading" element={<Loading />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/generating" element={<GeneratingResults />} />
           <Route path="/results" element={<Results />} />
         </Routes>
       </BrowserRouter>
