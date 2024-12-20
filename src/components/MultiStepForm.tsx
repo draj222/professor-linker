@@ -14,6 +14,7 @@ export const MultiStepForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted with field of interest:', fieldOfInterest);
     
     if (!fieldOfInterest) {
       toast({
@@ -26,6 +27,7 @@ export const MultiStepForm = () => {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user);
       
       if (!user) {
         toast({
@@ -46,8 +48,9 @@ export const MultiStepForm = () => {
       // Store in localStorage for the pricing page
       localStorage.setItem('fieldOfInterest', fieldOfInterest);
       
+      console.log('Navigating to pricing page...');
       // Navigate to pricing page using replace to prevent going back
-      navigate('/pricing', { replace: true });
+      navigate('/pricing');
       
     } catch (error) {
       console.error('Error:', error);
