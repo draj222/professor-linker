@@ -22,19 +22,7 @@ serve(async (req) => {
       throw new Error('Field of interest is required');
     }
 
-    const prompt = `Generate a detailed list of 50 realistic professors who specialize in ${fieldOfInterest}. Focus on professors from top universities like Stanford, MIT, Harvard, UC Berkeley, Carnegie Mellon, and other leading institutions.
-
-For each professor, provide:
-1. Full name (use realistic academic names)
-2. Email (use their actual university domain, e.g., @stanford.edu, @mit.edu, etc.)
-3. Current position/title (be specific with their academic role)
-4. Institution (focus on real top universities)
-5. A brief description of their recent work or research interests related to ${fieldOfInterest}
-6. A personalized email template that a student would send to inquire about research opportunities, mentioning their specific work.
-
-Format the response as a JSON array of objects with these fields: name, email, position, institution, recentWork, generatedEmail.
-
-Make sure each professor's details are realistic and their research aligns with ${fieldOfInterest}. Use actual university email domains and realistic academic titles.`;
+    const systemPrompt = `You are an expert in academic research and university faculty. Generate a list of 50 professors who specialize in ${fieldOfInterest}. For each professor, include their name, email, position, institution, and a brief description of their recent work. Format the response as an array of objects.`;
 
     console.log("Sending request to OpenAI...");
     
@@ -45,19 +33,15 @@ Make sure each professor's details are realistic and their research aligns with 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
-          { 
-            role: 'system', 
-            content: 'You are an expert in academic research and university faculty. Generate detailed, accurate information about professors and their research work in JSON format.' 
-          },
+          { role: 'system', content: systemPrompt },
           { 
             role: 'user', 
-            content: prompt 
+            content: `Generate a list of professors specializing in ${fieldOfInterest}. Include their name, email (using real university domains), position, institution, and a brief description of their recent work. Make it realistic and focused on top universities.` 
           }
         ],
-        temperature: 0.7,
-        response_format: { type: "json_object" }  // Ensure JSON response
+        temperature: 0.7
       }),
     });
 
@@ -68,7 +52,7 @@ Make sure each professor's details are realistic and their research aligns with 
     }
 
     const data = await response.json();
-    console.log("Received response from OpenAI:", data);
+    console.log("Received response from OpenAI");
 
     if (!data.choices || !data.choices[0]?.message?.content) {
       console.error('Invalid OpenAI response:', data);
@@ -76,15 +60,31 @@ Make sure each professor's details are realistic and their research aligns with 
     }
 
     const generatedContent = data.choices[0].message.content;
+    console.log("Generated content:", generatedContent);
+
+    // Process the response to ensure it's in the correct format
     let professors;
-    
     try {
-      professors = JSON.parse(generatedContent);
-      console.log(`Successfully parsed professor data. Generated ${professors.length} professors`);
+      // The response might be a string that needs parsing, or might already be an object
+      professors = typeof generatedContent === 'string' ? JSON.parse(generatedContent) : generatedContent;
+      
+      // Ensure it's an array
+      if (!Array.isArray(professors)) {
+        // If it's an object with a data/results property, try to extract the array
+        professors = professors.data || professors.results || professors.professors || [];
+      }
+
+      // Generate personalized emails for each professor
+      professors = professors.map(prof => ({
+        ...prof,
+        generatedEmail: `Dear ${prof.name},\n\nI am writing to express my interest in your research work on ${fieldOfInterest}, particularly your recent work on ${prof.recentWork}. Your expertise in this area aligns perfectly with my academic interests and career goals.\n\nI would greatly appreciate the opportunity to discuss potential research opportunities in your lab.\n\nBest regards,\n[Your name]`
+      }));
+
+      console.log(`Successfully processed ${professors.length} professors`);
     } catch (error) {
-      console.error('Error parsing OpenAI response:', error);
+      console.error('Error processing professor data:', error);
       console.error('Raw content:', generatedContent);
-      throw new Error('Failed to parse professor data');
+      throw new Error('Failed to process professor data');
     }
 
     return new Response(JSON.stringify(professors), {
