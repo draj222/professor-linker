@@ -7,6 +7,7 @@ import { FieldOfInterest } from "./navbar/FieldOfInterest";
 
 export const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasPlan, setHasPlan] = useState(false);
   const [userDetails, setUserDetails] = useState({
     email: "",
     fieldOfInterest: "",
@@ -25,14 +26,25 @@ export const Navbar = () => {
           name: session.user.user_metadata?.full_name || "",
           fieldOfInterest: session.user.user_metadata?.field_of_interest || "",
         });
+
+        // Check if user has a plan
+        const { data: userPlan } = await supabase
+          .from('user_plans')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+
+        console.log("User plan:", userPlan);
+        setHasPlan(!!userPlan);
       } else {
         setIsAuthenticated(false);
+        setHasPlan(false);
       }
     };
 
     getUserDetails();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event);
       if (session) {
         setIsAuthenticated(true);
@@ -41,22 +53,27 @@ export const Navbar = () => {
           name: session.user.user_metadata?.full_name || "",
           fieldOfInterest: session.user.user_metadata?.field_of_interest || "",
         });
+
+        // Check if user has a plan when auth state changes
+        const { data: userPlan } = await supabase
+          .from('user_plans')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+
+        console.log("User plan on auth change:", userPlan);
+        setHasPlan(!!userPlan);
       } else {
         setIsAuthenticated(false);
+        setHasPlan(false);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleFieldOfInterestUpdate = (newValue: string) => {
-    setUserDetails(prev => ({
-      ...prev,
-      fieldOfInterest: newValue
-    }));
-  };
-
-  if (!isAuthenticated) {
+  // Only show navbar if user is authenticated AND has a plan
+  if (!isAuthenticated || !hasPlan) {
     return null;
   }
 
