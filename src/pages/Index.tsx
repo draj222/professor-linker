@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navbar } from '@/components/Navbar';
 import { Mail, Package } from 'lucide-react';
+import { Login } from '@/components/Login';
 
 const Index = () => {
   const [user, setUser] = useState(null);
@@ -13,19 +14,29 @@ const Index = () => {
 
   useEffect(() => {
     // Check current auth status
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserPlan(session.user.id);
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Current session:', session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await fetchUserPlan(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+      } finally {
+        setLoading(false);
       }
-    });
+    };
+
+    checkAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserPlan(session.user.id);
+        await fetchUserPlan(session.user.id);
       }
     });
 
@@ -49,15 +60,8 @@ const Index = () => {
       setPlanInfo(data);
     } catch (error) {
       console.error('Error:', error);
-    } finally {
-      setLoading(false);
     }
   };
-
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
 
   if (loading) {
     return (
@@ -65,6 +69,18 @@ const Index = () => {
         <Navbar />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-xl">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black">
+        <Navbar />
+        <div className="container mx-auto px-4 py-20">
+          <h1 className="text-4xl font-bold text-white mb-8 text-center">Welcome to Professor Linker</h1>
+          <Login />
         </div>
       </div>
     );
