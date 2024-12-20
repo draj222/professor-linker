@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ProfessorCard } from "./ProfessorCard";
+import { ProfessorList } from "./ProfessorList";
 import { EmailDisplay } from "./EmailDisplay";
 
 interface Professor {
@@ -43,12 +42,10 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
     getUserName();
   }, [results, selectedProfessor]);
 
-  const handleCardClick = (professor: Professor, index: number) => {
-    // If clicking the same card, just toggle the flip
+  const handleProfessorSelect = (professor: Professor, index: number) => {
     if (flippedCard === index) {
       setFlippedCard(null);
     } else {
-      // If clicking a different card, update both the flip and selection
       setFlippedCard(index);
       setSelectedProfessor(professor);
     }
@@ -117,22 +114,12 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="glass-panel p-6 h-[600px]">
-          <h3 className="text-xl font-semibold mb-4">Found Professors</h3>
-          <ScrollArea className="h-[520px] pr-4">
-            <div className="space-y-4">
-              {results.map((professor, index) => (
-                <ProfessorCard
-                  key={index}
-                  professor={professor}
-                  isSelected={selectedProfessor === professor}
-                  isFlipped={flippedCard === index}
-                  onClick={() => handleCardClick(professor, index)}
-                />
-              ))}
-            </div>
-          </ScrollArea>
-        </Card>
+        <ProfessorList
+          professors={results}
+          selectedProfessor={selectedProfessor}
+          flippedCard={flippedCard}
+          onProfessorSelect={handleProfessorSelect}
+        />
 
         <Card className="glass-panel p-6 h-[600px]">
           <h3 className="text-xl font-semibold mb-4">Generated Email</h3>
