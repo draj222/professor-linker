@@ -1,7 +1,14 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import { generatePersonalizedEmails } from "@/utils/openai";
+import { toast } from "sonner";
 
 const PricingPage = () => {
+  const navigate = useNavigate();
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const plans = [
     {
       name: "Basic",
@@ -22,6 +29,32 @@ const PricingPage = () => {
       features: ["Unlimited personalized emails", "24/7 support", "Custom templates"]
     }
   ];
+
+  const handleGetStarted = async (plan: string) => {
+    if (plan === "Basic") {
+      setIsGenerating(true);
+      toast.info("Starting to generate personalized emails...");
+      
+      try {
+        // Get the field of interest from localStorage (set during form submission)
+        const fieldOfInterest = localStorage.getItem("fieldOfInterest") || "";
+        const professors = await generatePersonalizedEmails(fieldOfInterest);
+        
+        if (professors.length > 0) {
+          // Store the results in localStorage for the results page
+          localStorage.setItem("generatedProfessors", JSON.stringify(professors));
+          navigate("/results");
+        }
+      } catch (error) {
+        console.error("Error in handleGetStarted:", error);
+        toast.error("Failed to generate emails. Please try again.");
+      } finally {
+        setIsGenerating(false);
+      }
+    } else {
+      toast.info("Coming soon! Only Basic plan is available now.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-4">
@@ -56,8 +89,12 @@ const PricingPage = () => {
                 ))}
               </ul>
 
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                Get Started
+              <Button 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => handleGetStarted(plan.name)}
+                disabled={isGenerating}
+              >
+                {isGenerating ? "Generating..." : "Get Started"}
               </Button>
             </Card>
           ))}
