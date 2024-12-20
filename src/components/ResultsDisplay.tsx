@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ProfessorCard } from "./ProfessorCard";
+import { EmailDisplay } from "./EmailDisplay";
 
 interface Professor {
   name: string;
@@ -119,38 +120,13 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
           <ScrollArea className="h-[520px] pr-4">
             <div className="space-y-4">
               {results.map((professor, index) => (
-                <div
+                <ProfessorCard
                   key={index}
-                  className={`relative w-full h-48 cursor-pointer perspective-1000`}
+                  professor={professor}
+                  isSelected={selectedProfessor === professor}
+                  isFlipped={flippedCard === index}
                   onClick={() => handleCardClick(professor, index)}
-                >
-                  <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${
-                    flippedCard === index ? 'rotate-y-180' : ''
-                  }`}>
-                    {/* Front of card */}
-                    <Card
-                      className={`absolute w-full h-full p-4 backface-hidden ${
-                        selectedProfessor === professor ? 'ring-2 ring-primary' : ''
-                      }`}
-                    >
-                      <h4 className="font-medium">{professor.name}</h4>
-                      <p className="text-sm text-muted-foreground">{professor.position}</p>
-                      <p className="text-sm text-muted-foreground">{professor.institution}</p>
-                    </Card>
-                    
-                    {/* Back of card */}
-                    <Card
-                      className="absolute w-full h-full p-4 backface-hidden rotate-y-180 bg-primary/5"
-                    >
-                      <h4 className="font-medium mb-2">Recent Work</h4>
-                      <p className="text-sm text-muted-foreground">{professor.recentWork}</p>
-                      <div className="mt-2">
-                        <h4 className="font-medium mb-1">Contact</h4>
-                        <p className="text-sm text-muted-foreground">{professor.email}</p>
-                      </div>
-                    </Card>
-                  </div>
-                </div>
+                />
               ))}
             </div>
           </ScrollArea>
@@ -158,43 +134,12 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
 
         <Card className="glass-panel p-6 h-[600px]">
           <h3 className="text-xl font-semibold mb-4">Generated Email</h3>
-          {selectedProfessor ? (
-            <div className="space-y-4">
-              <div className="prose prose-sm">
-                <ScrollArea className="h-[420px] pr-4">
-                  <div className="space-y-2">
-                    <p><strong>To:</strong> {selectedProfessor.email}</p>
-                    <p><strong>Subject:</strong> Research Opportunity Inquiry</p>
-                    <div className="mt-4">
-                      {selectedProfessor.generatedEmail.split('\n').map((paragraph, index) => (
-                        <p key={index} className="mb-2">{paragraph}</p>
-                      ))}
-                    </div>
-                  </div>
-                </ScrollArea>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => copyToClipboard(selectedProfessor.generatedEmail)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Copy Email
-                </Button>
-                <Button
-                  onClick={sendEmail}
-                  className="flex-1"
-                  disabled={isSending}
-                >
-                  {isSending ? 'Sending...' : 'Send Email'}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="h-full flex items-center justify-center text-muted-foreground">
-              Select a professor to view the generated email
-            </div>
-          )}
+          <EmailDisplay
+            professor={selectedProfessor}
+            onCopy={copyToClipboard}
+            onSend={sendEmail}
+            isSending={isSending}
+          />
         </Card>
       </div>
     </div>
