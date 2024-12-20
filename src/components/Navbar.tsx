@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Navbar = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userDetails, setUserDetails] = useState({
     email: "",
     fieldOfInterest: "",
@@ -21,25 +22,43 @@ export const Navbar = () => {
   useEffect(() => {
     const getUserDetails = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log("Current session:", session);
+      
       if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profile) {
-          setUserDetails({
-            email: session.user.email || "",
-            name: profile.full_name || "",
-            fieldOfInterest: profile.field_of_interest || "",
-          });
-        }
+        setIsAuthenticated(true);
+        setUserDetails({
+          email: session.user.email || "",
+          name: session.user.user_metadata?.full_name || "",
+          fieldOfInterest: session.user.user_metadata?.field_of_interest || "",
+        });
+      } else {
+        setIsAuthenticated(false);
       }
     };
 
     getUserDetails();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event);
+      if (session) {
+        setIsAuthenticated(true);
+        setUserDetails({
+          email: session.user.email || "",
+          name: session.user.user_metadata?.full_name || "",
+          fieldOfInterest: session.user.user_metadata?.field_of_interest || "",
+        });
+      } else {
+        setIsAuthenticated(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <nav className="bg-blue-900/50 backdrop-blur-sm fixed top-0 left-0 right-0 z-50">
