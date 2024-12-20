@@ -16,8 +16,9 @@ serve(async (req) => {
   }
 
   try {
-    const { fieldOfInterest } = await req.json();
+    const { fieldOfInterest, userName } = await req.json();
     console.log("Generating professors for field:", fieldOfInterest);
+    console.log("User name:", userName);
 
     if (!fieldOfInterest) {
       throw new Error('Field of interest is required');
@@ -66,19 +67,24 @@ serve(async (req) => {
             messages: [
               { 
                 role: 'system', 
-                content: `You are an expert at writing professional academic emails.
+                content: `You are an expert at writing professional academic emails from the perspective of a passionate high school student.
                 Write a 200-word email to a professor expressing interest in their research.
-                The email should be formal, well-structured, and demonstrate knowledge of their work.
-                Always address the professor as "Dr." followed by their last name.
-                Use proper grammar and punctuation.` 
+                The email should:
+                - Be formal and well-structured
+                - Demonstrate knowledge of their work
+                - Mention that you are a high school student passionate about their field
+                - Express enthusiasm for learning and potentially contributing
+                - Request an opportunity to learn more about their research or possibly shadow/intern
+                - Use proper grammar and punctuation
+                - Always address them as "Dr." followed by their last name
+                - Be exactly 200 words` 
               },
               { 
                 role: 'user', 
                 content: `Write an email to Dr. ${prof.name} at ${prof.institution}.
+                The email should be from ${userName}, a high school student interested in ${fieldOfInterest}.
                 Their recent work focuses on: ${prof.recentWork}
-                Field of interest: ${fieldOfInterest}
-                The email should express interest in their research and potential collaboration opportunities.
-                Make it exactly 200 words.`
+                Make it exactly 200 words, formal, and enthusiastic.`
               }
             ],
             temperature: 0.7,

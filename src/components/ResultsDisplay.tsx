@@ -27,15 +27,12 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.user_metadata?.full_name) {
         setUserName(user.user_metadata.full_name);
-        const updatedResults = results.map(prof => ({
-          ...prof,
-          generatedEmail: prof.generatedEmail.replace('[Your name]', user.user_metadata.full_name)
-        }));
-        setProcessedResults(updatedResults);
+        // No need to replace [Your name] anymore as it's handled in the Edge Function
+        setProcessedResults(results);
       }
     };
     getUserName();
-  }, [results]); // Only depend on results, not on selectedProfessor
+  }, [results]);
 
   const handleProfessorSelect = (professor: Professor, index: number) => {
     const selectedProf = processedResults.find(p => p.email === professor.email);
