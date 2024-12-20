@@ -31,11 +31,12 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
           generatedEmail: prof.generatedEmail.replace('[Your name]', user.user_metadata.full_name)
         }));
         if (selectedProfessor) {
-          const updatedSelectedProfessor = {
-            ...selectedProfessor,
-            generatedEmail: selectedProfessor.generatedEmail.replace('[Your name]', user.user_metadata.full_name)
-          };
-          setSelectedProfessor(updatedSelectedProfessor);
+          const updatedSelectedProfessor = updatedResults.find(
+            prof => prof.email === selectedProfessor.email
+          );
+          if (updatedSelectedProfessor) {
+            setSelectedProfessor(updatedSelectedProfessor);
+          }
         }
       }
     };
@@ -43,12 +44,9 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
   }, [results, selectedProfessor]);
 
   const handleProfessorSelect = (professor: Professor, index: number) => {
-    if (flippedCard === index) {
-      setFlippedCard(null);
-    } else {
-      setFlippedCard(index);
-      setSelectedProfessor(professor);
-    }
+    // Update both the selected professor and flipped card state
+    setSelectedProfessor(professor);
+    setFlippedCard(flippedCard === index ? null : index);
   };
 
   const copyToClipboard = async (text: string) => {
