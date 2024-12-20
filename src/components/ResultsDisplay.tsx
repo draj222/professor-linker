@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,7 +16,24 @@ interface Professor {
 export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
   const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [userName, setUserName] = useState('');
   const { toast } = useToast();
+
+  useEffect(() => {
+    const getUserName = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.user_metadata?.full_name) {
+        setUserName(user.user_metadata.full_name);
+        // Update the emails with the user's name
+        const updatedResults = results.map(prof => ({
+          ...prof,
+          generatedEmail: prof.generatedEmail.replace('[Your name]', user.user_metadata.full_name)
+        }));
+        setSelectedProfessor(null); // Reset selection to avoid stale data
+      }
+    };
+    getUserName();
+  }, [results]);
 
   const copyToClipboard = async (text: string) => {
     try {
