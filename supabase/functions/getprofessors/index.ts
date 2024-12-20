@@ -1,57 +1,82 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Configuration, OpenAIApi } from "https://esm.sh/openai@4.14.0";
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { fieldOfInterest } = await req.json();
-    console.log("Received field of interest:", fieldOfInterest);
+    console.log("Generating professors for field:", fieldOfInterest);
 
-    const configuration = new Configuration({
-      apiKey: OPENAI_API_KEY,
+    const prompt = `Generate a detailed list of 50 realistic professors who specialize in ${fieldOfInterest}. Focus on professors from top universities like Stanford, MIT, Harvard, UC Berkeley, Carnegie Mellon, and other leading institutions.
+
+For each professor, provide:
+1. Full name (use realistic academic names)
+2. Email (use their actual university domain, e.g., @stanford.edu, @mit.edu, etc.)
+3. Current position/title (be specific with their academic role)
+4. Institution (focus on real top universities)
+5. A brief description of their recent work or research interests related to ${fieldOfInterest}
+6. A personalized email template that a student would send to inquire about research opportunities, mentioning their specific work.
+
+Format the response as a JSON array of objects with these fields: name, email, position, institution, recentWork, generatedEmail.
+
+Make sure each professor's details are realistic and their research aligns with ${fieldOfInterest}. Use actual university email domains and realistic academic titles.`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are an expert in academic research and university faculty. You provide detailed, accurate information about professors and their research work.' 
+          },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7
+      }),
     });
-    const openai = new OpenAIApi(configuration);
 
-    const prompt = `Generate 5 realistic but fictional professors who specialize in ${fieldOfInterest}. For each professor, include:
-    1. Full name
-    2. Email address (use university.edu domain)
-    3. Position/title
-    4. Institution
-    5. A personalized email template that a student would send to inquire about research opportunities.
-    Format as JSON array.`;
+    const data = await response.json();
+    console.log("Received response from OpenAI");
 
-    const completion = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
-    });
+    if (!data.choices || !data.choices[0]?.message?.content) {
+      throw new Error('Invalid response from OpenAI');
+    }
 
-    const responseContent = completion.data.choices[0].message?.content || "[]";
-    console.log("Generated response:", responseContent);
+    const generatedContent = data.choices[0].message.content;
+    let professors;
+    
+    try {
+      professors = JSON.parse(generatedContent);
+      console.log(`Successfully generated ${professors.length} professors`);
+    } catch (error) {
+      console.error('Error parsing OpenAI response:', error);
+      throw new Error('Failed to parse professor data');
+    }
 
-    return new Response(responseContent, {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return new Response(JSON.stringify(professors), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error("Error in getprofessors function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    console.error('Error in getprofessors function:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
-};
-
-serve(handler);
+});
