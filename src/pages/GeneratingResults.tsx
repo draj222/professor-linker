@@ -10,20 +10,32 @@ const GeneratingResults = () => {
     const fetchProfessors = async () => {
       try {
         const fieldOfInterest = localStorage.getItem("fieldOfInterest");
+        if (!fieldOfInterest) {
+          throw new Error("No field of interest specified");
+        }
+        
         console.log("Fetching professors for field:", fieldOfInterest);
 
         const { data, error } = await supabase.functions.invoke("getprofessors", {
           body: { fieldOfInterest },
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase function error:", error);
+          throw error;
+        }
+
+        if (!data || !Array.isArray(data)) {
+          console.error("Invalid data format received:", data);
+          throw new Error("Invalid response format from server");
+        }
 
         console.log("Generated professors:", data);
         localStorage.setItem("generatedProfessors", JSON.stringify(data));
         navigate("/results");
       } catch (error) {
         console.error("Error generating professors:", error);
-        toast.error("Failed to generate professors. Please try again.");
+        toast.error(error.message || "Failed to generate professors. Please try again.");
         navigate("/pricing");
       }
     };

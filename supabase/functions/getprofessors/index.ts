@@ -18,6 +18,10 @@ serve(async (req) => {
     const { fieldOfInterest } = await req.json();
     console.log("Generating professors for field:", fieldOfInterest);
 
+    if (!fieldOfInterest) {
+      throw new Error('Field of interest is required');
+    }
+
     const prompt = `Generate a detailed list of 50 realistic professors who specialize in ${fieldOfInterest}. Focus on professors from top universities like Stanford, MIT, Harvard, UC Berkeley, Carnegie Mellon, and other leading institutions.
 
 For each professor, provide:
@@ -39,7 +43,7 @@ Make sure each professor's details are realistic and their research aligns with 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           { 
             role: 'system', 
@@ -55,6 +59,7 @@ Make sure each professor's details are realistic and their research aligns with 
     console.log("Received response from OpenAI");
 
     if (!data.choices || !data.choices[0]?.message?.content) {
+      console.error('Invalid OpenAI response:', data);
       throw new Error('Invalid response from OpenAI');
     }
 
