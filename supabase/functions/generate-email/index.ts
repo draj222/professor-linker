@@ -21,12 +21,21 @@ serve(async (req) => {
     Write a 200-word email to a professor expressing interest in their research.
     The email should be formal, well-structured, and demonstrate knowledge of their work.
     Always address the professor as "Dr." followed by their last name.
-    Use proper grammar and punctuation.`;
+    Use proper grammar and punctuation.
+    The tone should be professional and academic.
+    Include:
+    - A formal greeting
+    - A brief introduction
+    - Specific interest in their research
+    - Relevant background/qualifications
+    - A polite request for research opportunities
+    - A professional closing`;
 
     const userPrompt = `Write an email to Dr. ${professor.name} at ${professor.institution}.
     Their recent work focuses on: ${professor.recentWork}
     Field of interest: ${fieldOfInterest}
-    The email should express interest in their research and potential collaboration opportunities.`;
+    The email should express interest in their research and potential collaboration opportunities.
+    Make it exactly 200 words.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

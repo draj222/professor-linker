@@ -11,7 +11,6 @@ const corsHeaders = {
 const systemPrompt = `You are an expert in academic research and university faculty. Generate a list of professors who specialize in the given field. Return the response as a JSON array of objects, where each object has the following properties: name, email, position, institution, and recentWork. Make sure to use real university domains for emails and focus on top universities.`;
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -24,12 +23,6 @@ serve(async (req) => {
       throw new Error('Field of interest is required');
     }
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key is not configured');
-    }
-
-    console.log("Sending request to OpenAI...");
-    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -37,12 +30,12 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { 
             role: 'user', 
-            content: `Generate a list of professors specializing in ${fieldOfInterest}. Include their name, email (using real university domains), position, institution, and a brief description of their recent work. Make it realistic and focused on top universities.` 
+            content: `Generate 10 professors specializing in ${fieldOfInterest}. Include their name, email (using real university domains), position, institution, and a brief description of their recent work. Make it realistic and focused on top universities.` 
           }
         ],
         temperature: 0.7,
@@ -51,43 +44,63 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
     const data = await response.json();
     console.log("Received response from OpenAI");
 
-    if (!data.choices || !data.choices[0]?.message?.content) {
-      console.error('Invalid OpenAI response:', data);
-      throw new Error('Invalid response from OpenAI');
-    }
+    let professors = JSON.parse(data.choices[0].message.content).professors;
 
-    const generatedContent = data.choices[0].message.content;
-    console.log("Generated content:", generatedContent);
+    // Generate personalized emails for each professor
+    professors = await Promise.all(professors.map(async (prof) => {
+      try {
+        const emailResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { 
+                role: 'system', 
+                content: `You are an expert at writing professional academic emails.
+                Write a 200-word email to a professor expressing interest in their research.
+                The email should be formal, well-structured, and demonstrate knowledge of their work.
+                Always address the professor as "Dr." followed by their last name.
+                Use proper grammar and punctuation.` 
+              },
+              { 
+                role: 'user', 
+                content: `Write an email to Dr. ${prof.name} at ${prof.institution}.
+                Their recent work focuses on: ${prof.recentWork}
+                Field of interest: ${fieldOfInterest}
+                The email should express interest in their research and potential collaboration opportunities.
+                Make it exactly 200 words.`
+              }
+            ],
+            temperature: 0.7,
+          }),
+        });
 
-    // Process the response to ensure it's in the correct format
-    let professors;
-    try {
-      // The response might be a string that needs parsing, or might already be an object
-      professors = typeof generatedContent === 'string' ? JSON.parse(generatedContent) : generatedContent;
-      
-      // Ensure we have an array of professors
-      professors = professors.professors || professors.data || professors.results || [];
+        if (!emailResponse.ok) {
+          throw new Error(`OpenAI API error: ${emailResponse.statusText}`);
+        }
 
-      // Generate personalized emails for each professor
-      professors = professors.map(prof => ({
-        ...prof,
-        generatedEmail: `Dear ${prof.name},\n\nI am writing to express my interest in your research work on ${fieldOfInterest}, particularly your recent work on ${prof.recentWork}. Your expertise in this area aligns perfectly with my academic interests and career goals.\n\nI would greatly appreciate the opportunity to discuss potential research opportunities in your lab.\n\nBest regards,\n[Your name]`
-      }));
+        const emailData = await emailResponse.json();
+        return {
+          ...prof,
+          generatedEmail: emailData.choices[0].message.content,
+        };
+      } catch (error) {
+        console.error('Error generating email for professor:', prof.name, error);
+        return prof;
+      }
+    }));
 
-      console.log(`Successfully processed ${professors.length} professors`);
-    } catch (error) {
-      console.error('Error processing professor data:', error);
-      console.error('Raw content:', generatedContent);
-      throw new Error('Failed to process professor data');
-    }
+    console.log(`Successfully generated ${professors.length} professors with emails`);
 
     return new Response(JSON.stringify(professors), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
