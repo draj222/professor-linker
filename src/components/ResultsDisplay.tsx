@@ -27,6 +27,8 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          console.log('Fetching profile for user:', user.id);
+          
           // Fetch the user's profile from the profiles table
           const { data: profile, error } = await supabase
             .from('profiles')
@@ -34,21 +36,44 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
             .eq('id', user.id)
             .single();
 
-          if (error) throw error;
+          if (error) {
+            console.error('Error fetching profile:', error);
+            throw error;
+          }
           
+          // Only update if we have a valid name
           if (profile?.full_name) {
             console.log('Retrieved user full name:', profile.full_name);
             setUserName(profile.full_name);
+            
             // Process the results with the actual user name
             const processed = results.map(result => ({
               ...result,
-              generatedEmail: result.generatedEmail.replace('[Your name]', profile.full_name)
+              generatedEmail: result.generatedEmail.replace(
+                '[Your name]', 
+                profile.full_name || 'Your name'  // Fallback if somehow full_name is empty
+              )
+            }));
+            setProcessedResults(processed);
+          } else {
+            console.log('No full name found in profile, using default');
+            // If no name is found, use a default placeholder
+            const processed = results.map(result => ({
+              ...result,
+              generatedEmail: result.generatedEmail.replace('[Your name]', 'Your name')
             }));
             setProcessedResults(processed);
           }
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
+        // Use a default value if there's an error
+        const processed = results.map(result => ({
+          ...result,
+          generatedEmail: result.generatedEmail.replace('[Your name]', 'Your name')
+        }));
+        setProcessedResults(processed);
+        
         toast({
           title: "Error",
           description: "Failed to load user profile information",
