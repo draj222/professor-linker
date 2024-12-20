@@ -25,7 +25,7 @@ export const generatePersonalizedEmails = async (fieldOfInterest: string): Promi
       position: ['Assistant Professor', 'Associate Professor', 'Full Professor', 'Distinguished Professor', 'Research Professor'][index % 5],
       institution: institution,
       recentWork: `${fieldOfInterest} Research Project ${index + 1}`,
-      generatedEmail: `Dear Professor ${lastName},
+      generatedEmail: `Dear Dr. ${lastName},
 
 I am writing to express my sincere interest in pursuing research opportunities in your laboratory at ${institution}. Your groundbreaking work in ${fieldOfInterest}, particularly your innovative research on ${fieldOfInterest} Research Project ${index + 1}, has deeply resonated with my academic interests and career aspirations. After thoroughly reviewing your recent publications and your lab's research focus, I have been particularly impressed by your methodological approaches and the significant contributions your work has made to advancing our understanding of complex problems in ${fieldOfInterest}. The innovative frameworks you've developed for analyzing and interpreting data in this field have been especially inspiring to me.
 
