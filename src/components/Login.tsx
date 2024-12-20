@@ -10,7 +10,9 @@ export const Login = () => {
   useEffect(() => {
     // Listen for auth changes and redirect if user is logged in
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session);
       if (session) {
+        console.log('User logged in, redirecting to home');
         navigate('/', { replace: true });
       }
     });
