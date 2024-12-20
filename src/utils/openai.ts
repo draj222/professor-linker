@@ -14,15 +14,17 @@ export const generatePersonalizedEmails = async (fieldOfInterest: string): Promi
   try {
     console.log("Generating emails for field:", fieldOfInterest);
     
-    // Get the OpenAI API key from Supabase
-    const { data: { secret: OPENAI_API_KEY }, error: secretError } = await supabase.rpc('get_secret', {
+    // Get the OpenAI API key from Supabase with proper typing
+    const { data, error: secretError } = await supabase.rpc('get_secret', {
       name: 'OPENAI_API_KEY'
-    });
+    }) as { data: { secret: string } | null, error: Error | null };
 
-    if (secretError || !OPENAI_API_KEY) {
+    if (secretError || !data?.secret) {
       console.error("Error getting OpenAI API key:", secretError);
       throw new Error("Failed to get OpenAI API key");
     }
+
+    const OPENAI_API_KEY = data.secret;
 
     const systemPrompt = `You are an AI assistant helping to generate a list of 100 professors and their details, 
     along with personalized emails for academic outreach in the field of ${fieldOfInterest}. 
