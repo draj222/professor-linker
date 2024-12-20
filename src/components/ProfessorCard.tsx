@@ -27,24 +27,24 @@ export const ProfessorCard = ({ professor, isSelected, isFlipped, onClick }: Pro
       }`}>
         {/* Front of card */}
         <Card
-          className={`absolute w-full h-full p-4 backface-hidden ${
-            isSelected ? 'ring-2 ring-primary' : ''
+          className={`absolute w-full h-full p-4 backface-hidden bg-sky-500 text-white ${
+            isSelected ? 'ring-2 ring-white' : ''
           }`}
         >
           <h4 className="font-medium">{professor.name}</h4>
-          <p className="text-sm text-muted-foreground">{professor.position}</p>
-          <p className="text-sm text-muted-foreground">{professor.institution}</p>
+          <p className="text-sm text-sky-100">{professor.position}</p>
+          <p className="text-sm text-sky-100">{professor.institution}</p>
         </Card>
         
         {/* Back of card */}
         <Card
-          className="absolute w-full h-full p-4 backface-hidden rotate-y-180 bg-primary/5"
+          className="absolute w-full h-full p-4 backface-hidden rotate-y-180 bg-sky-600 text-white"
         >
           <h4 className="font-medium mb-2">Recent Work</h4>
-          <p className="text-sm text-muted-foreground">{professor.recentWork}</p>
+          <p className="text-sm text-sky-100">{professor.recentWork}</p>
           <div className="mt-2">
             <h4 className="font-medium mb-1">Contact</h4>
-            <p className="text-sm text-muted-foreground">{professor.email}</p>
+            <p className="text-sm text-sky-100">{professor.email}</p>
           </div>
         </Card>
       </div>
