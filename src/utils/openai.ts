@@ -22,7 +22,7 @@ export const generatePersonalizedEmails = async (fieldOfInterest: string): Promi
   try {
     console.log("Generating emails for field:", fieldOfInterest);
     
-    // Get the OpenAI API key from Supabase with proper typing
+    // Get the OpenAI API key from Supabase
     const { data: secretData, error: secretError } = await supabase.rpc('get_secret', {
       name: 'OPENAI_API_KEY'
     });
@@ -47,7 +47,7 @@ export const generatePersonalizedEmails = async (fieldOfInterest: string): Promi
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Generate 100 professors' information and personalized emails for ${fieldOfInterest}. 

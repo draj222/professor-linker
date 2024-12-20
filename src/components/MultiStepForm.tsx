@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import { generatePersonalizedEmails } from '@/utils/openai';
 
 interface FormData {
   name: string;
@@ -14,7 +15,7 @@ interface FormData {
   fieldOfInterest: string;
 }
 
-export const MultiStepForm = ({ onSubmit }: { onSubmit: (data: FormData) => void }) => {
+export const MultiStepForm = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
@@ -25,7 +26,7 @@ export const MultiStepForm = ({ onSubmit }: { onSubmit: (data: FormData) => void
   });
   const { toast } = useToast();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1 && (!formData.name || !formData.email || !formData.phone)) {
       toast({
         title: "Missing Information",
@@ -43,8 +44,32 @@ export const MultiStepForm = ({ onSubmit }: { onSubmit: (data: FormData) => void
       return;
     }
     if (step === 2) {
-      onSubmit(formData);
-      navigate('/loading');
+      try {
+        toast({
+          title: "Generating Emails",
+          description: "Please wait while we search for professors...",
+        });
+        
+        const professors = await generatePersonalizedEmails(formData.fieldOfInterest);
+        
+        if (professors && professors.length > 0) {
+          localStorage.setItem("generatedProfessors", JSON.stringify(professors));
+          navigate("/results", { replace: true });
+        } else {
+          toast({
+            title: "Error",
+            description: "No professors found. Please try again.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to generate emails. Please try again.",
+          variant: "destructive",
+        });
+      }
     } else {
       setStep(step + 1);
     }
@@ -138,7 +163,7 @@ export const MultiStepForm = ({ onSubmit }: { onSubmit: (data: FormData) => void
             step === 2 ? 'bg-blue-500 hover:bg-blue-600 text-white w-full' : ''
           }`}
         >
-          {step === 2 ? 'Submit' : 'Next'}
+          {step === 2 ? 'Search Professors' : 'Next'}
         </Button>
       </div>
     </Card>
