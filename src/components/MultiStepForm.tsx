@@ -48,8 +48,8 @@ export const MultiStepForm = () => {
       // Store in localStorage for the pricing page
       localStorage.setItem('fieldOfInterest', fieldOfInterest);
       
-      console.log('Navigating to pricing page...');
-      navigate('/pricing');
+      console.log('Navigating to loading screen...');
+      navigate('/loading');
       
     } catch (error) {
       console.error('Error:', error);
