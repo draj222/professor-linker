@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfessorList } from "./ProfessorList";
 import { EmailDisplay } from "./EmailDisplay";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { processEmails } from "@/utils/emailUtils";
 
 interface Professor {
   name: string;
@@ -17,73 +19,16 @@ interface Professor {
 export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
   const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
   const [isSending, setIsSending] = useState(false);
-  const [userName, setUserName] = useState('');
   const [flippedCard, setFlippedCard] = useState<number | null>(null);
+  const { userName } = useUserProfile();
   const [processedResults, setProcessedResults] = useState<Professor[]>(results);
   const { toast } = useToast();
 
+  // Update processed results when userName changes
   useEffect(() => {
-    const getUserProfile = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          console.log('Fetching profile for user:', user.id);
-          
-          // Fetch the user's profile from the profiles table
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', user.id)
-            .single();
-
-          if (error) {
-            console.error('Error fetching profile:', error);
-            throw error;
-          }
-          
-          // Only update if we have a valid name
-          if (profile?.full_name) {
-            console.log('Retrieved user full name:', profile.full_name);
-            setUserName(profile.full_name);
-            
-            // Process the results with the actual user name
-            const processed = results.map(result => ({
-              ...result,
-              generatedEmail: result.generatedEmail.replace(
-                '[Your name]', 
-                profile.full_name || 'Your name'  // Fallback if somehow full_name is empty
-              )
-            }));
-            setProcessedResults(processed);
-          } else {
-            console.log('No full name found in profile, using default');
-            // If no name is found, use a default placeholder
-            const processed = results.map(result => ({
-              ...result,
-              generatedEmail: result.generatedEmail.replace('[Your name]', 'Your name')
-            }));
-            setProcessedResults(processed);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
-        // Use a default value if there's an error
-        const processed = results.map(result => ({
-          ...result,
-          generatedEmail: result.generatedEmail.replace('[Your name]', 'Your name')
-        }));
-        setProcessedResults(processed);
-        
-        toast({
-          title: "Error",
-          description: "Failed to load user profile information",
-          variant: "destructive",
-        });
-      }
-    };
-
-    getUserProfile();
-  }, [results, toast]);
+    const processed = processEmails(results, userName);
+    setProcessedResults(processed);
+  }, [results, userName]);
 
   const handleProfessorSelect = (professor: Professor, index: number) => {
     const selectedProf = processedResults.find(p => p.email === professor.email);
