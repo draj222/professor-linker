@@ -12,7 +12,7 @@ export const processEmails = (results: Professor[], userName: string): Professor
   return results.map(result => ({
     ...result,
     generatedEmail: result.generatedEmail.replace(
-      '[Your name]',
+      /\[Your name\]/gi,
       userName || 'Your name'
     )
   }));

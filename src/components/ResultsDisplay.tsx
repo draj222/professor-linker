@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +26,8 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
 
   // Update processed results when userName changes
   useEffect(() => {
-    const processed = processEmails(results, userName);
+    console.log('Processing emails with userName:', userName);
+    const processed = processEmails(results, userName || 'Your name');
     setProcessedResults(processed);
   }, [results, userName]);
 
