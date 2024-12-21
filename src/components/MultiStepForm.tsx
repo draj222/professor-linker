@@ -1,137 +1,73 @@
-import { useState } from 'react';
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
-export const MultiStepForm = () => {
-  const [step, setStep] = useState(1);
-  const [fullName, setFullName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [fieldOfInterest, setFieldOfInterest] = useState('');
-  const { toast } = useToast();
+const MultiStepForm = () => {
+  const [fieldOfInterest, setFieldOfInterest] = useState("");
+  const [userName, setUserName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleProfileSubmit = async () => {
-    if (!fullName.trim()) {
-      toast({
-        title: "Name Required",
-        description: "Please enter your full name before proceeding.",
-        variant: "destructive",
-      });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fieldOfInterest) {
+      toast.error("Please enter your field of interest");
       return;
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "User not found. Please try logging in again.",
-          variant: "destructive",
-        });
+      setIsLoading(true);
+      const { data: userData } = await supabase.auth.getUser();
+      const userEmail = userData.user?.email;
+
+      if (!userEmail) {
+        toast.error("You must be logged in to generate emails");
         return;
       }
 
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: fullName,
-          phone_number: phoneNumber,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
+      const { data: professors, error } = await supabase.functions.invoke('getprofessors', {
+        body: { 
+          fieldOfInterest,
+          userName,
+          numberOfProfessors: 26  // Pass the number of professors you want to generate
+        },
+      });
 
       if (error) throw error;
 
-      setStep(2);
+      localStorage.setItem('generatedProfessors', JSON.stringify(professors));
+      navigate('/results');
     } catch (error) {
-      console.error('Error updating profile:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save profile information. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Error:', error);
+      toast.error("Failed to generate professors. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const handleFieldSubmit = () => {
-    if (!fieldOfInterest.trim()) {
-      toast({
-        title: "Field Required",
-        description: "Please enter your field of interest before proceeding.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    localStorage.setItem('fieldOfInterest', fieldOfInterest);
-    navigate('/loading');
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto glass-panel p-6 shadow-xl bg-white/10 backdrop-blur-lg border-gray-700">
-      {step === 1 ? (
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="fullName" className="text-white">Full Name</Label>
-            <Input
-              id="fullName"
-              type="text"
-              placeholder="Enter your full name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="bg-white/20 border-gray-700 text-white placeholder:text-gray-400"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phoneNumber" className="text-white">Phone Number (Optional)</Label>
-            <Input
-              id="phoneNumber"
-              type="tel"
-              placeholder="Enter your phone number"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="bg-white/20 border-gray-700 text-white placeholder:text-gray-400"
-            />
-          </div>
-
-          <Button 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={handleProfileSubmit}
-          >
-            Next
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="fieldOfInterest" className="text-white">What field would you like to pursue?</Label>
-            <Input
-              id="fieldOfInterest"
-              type="text"
-              placeholder="Enter your field of interest"
-              value={fieldOfInterest}
-              onChange={(e) => setFieldOfInterest(e.target.value)}
-              className="bg-white/20 border-gray-700 text-white placeholder:text-gray-400"
-            />
-            <p className="text-sm text-gray-300">
-              Examples: Artificial Intelligence, Molecular Biology, Environmental Science
-            </p>
-          </div>
-
-          <Button 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={handleFieldSubmit}
-          >
-            Next
-          </Button>
-        </div>
-      )}
-    </Card>
+    <form onSubmit={handleSubmit}>
+      {/* Form fields for fieldOfInterest and userName */}
+      <input
+        type="text"
+        value={fieldOfInterest}
+        onChange={(e) => setFieldOfInterest(e.target.value)}
+        placeholder="Field of Interest"
+        required
+      />
+      <input
+        type="text"
+        value={userName}
+        onChange={(e) => setUserName(e.target.value)}
+        placeholder="Your Name"
+        required
+      />
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? "Generating..." : "Generate Emails"}
+      </button>
+    </form>
   );
 };
+
+export default MultiStepForm;

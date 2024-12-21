@@ -16,9 +16,10 @@ serve(async (req) => {
   }
 
   try {
-    const { fieldOfInterest, userName } = await req.json();
+    const { fieldOfInterest, userName, numberOfProfessors = 10 } = await req.json();
     console.log("Generating professors for field:", fieldOfInterest);
     console.log("User name:", userName);
+    console.log("Number of professors requested:", numberOfProfessors);
 
     if (!fieldOfInterest) {
       throw new Error('Field of interest is required');
@@ -36,7 +37,7 @@ serve(async (req) => {
           { role: 'system', content: systemPrompt },
           { 
             role: 'user', 
-            content: `Generate 10 professors specializing in ${fieldOfInterest}. Include their name, email (using real university domains), position, institution, and a brief description of their recent work. Make it realistic and focused on top universities.` 
+            content: `Generate ${numberOfProfessors} professors specializing in ${fieldOfInterest}. Include their name, email (using real university domains), position, institution, and a brief description of their recent work. Make it realistic and focused on top universities.` 
           }
         ],
         temperature: 0.7,
