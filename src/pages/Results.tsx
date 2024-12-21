@@ -14,14 +14,28 @@ const Results = () => {
   useEffect(() => {
     const storedResults = localStorage.getItem("generatedProfessors");
     if (storedResults) {
-      // Store all results initially
-      setResults(JSON.parse(storedResults));
+      const allResults = JSON.parse(storedResults);
+      // Take only the number of results that matches the user's plan
+      const userPlanEmails = localStorage.getItem("selectedEmailCount");
+      if (userPlanEmails) {
+        const count = parseInt(userPlanEmails);
+        console.log(`Using user selected email count: ${count}`);
+        setNumberOfEmails(count);
+        setResults(allResults.slice(0, count));
+        setShowResults(true);
+      } else {
+        console.log('No email count found in localStorage');
+        setResults(allResults);
+      }
     }
   }, []);
 
   const handleGenerateEmails = () => {
     const allResults = JSON.parse(localStorage.getItem("generatedProfessors") || "[]");
     console.log(`Generating ${numberOfEmails} emails from ${allResults.length} available professors`);
+    
+    // Store the selected number of emails
+    localStorage.setItem("selectedEmailCount", numberOfEmails.toString());
     
     // Take only the number of results that the user selected
     const selectedResults = allResults.slice(0, numberOfEmails);
