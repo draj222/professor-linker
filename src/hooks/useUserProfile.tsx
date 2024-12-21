@@ -31,27 +31,11 @@ export const useUserProfile = () => {
         }
         
         if (profile?.full_name) {
-          console.log('Retrieved user full name:', profile.full_name);
+          console.log('Retrieved user full name from profile:', profile.full_name);
           setUserName(profile.full_name);
         } else {
-          // If no profile found, try to get name from user metadata
-          const fullName = user.user_metadata?.full_name;
-          if (fullName) {
-            console.log('Using name from user metadata:', fullName);
-            // Update the profile with the name from metadata
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .update({ full_name: fullName })
-              .eq('id', user.id);
-
-            if (updateError) {
-              console.error('Error updating profile with metadata name:', updateError);
-            }
-            setUserName(fullName);
-          } else {
-            console.log('No full name found in profile or metadata');
-            setUserName(null);
-          }
+          console.log('No full name found in profile');
+          setUserName(null);
         }
       } catch (error) {
         console.error('Error in fetchUserProfile:', error);
