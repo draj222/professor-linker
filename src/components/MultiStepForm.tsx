@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-const MultiStepForm = () => {
+export const MultiStepForm = () => {
   const [fieldOfInterest, setFieldOfInterest] = useState("");
   const [userName, setUserName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +30,7 @@ const MultiStepForm = () => {
         body: { 
           fieldOfInterest,
           userName,
-          numberOfProfessors: 26  // Pass the number of professors you want to generate
+          numberOfProfessors: 26
         },
       });
 
@@ -48,7 +48,6 @@ const MultiStepForm = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* Form fields for fieldOfInterest and userName */}
       <input
         type="text"
         value={fieldOfInterest}
@@ -69,5 +68,3 @@ const MultiStepForm = () => {
     </form>
   );
 };
-
-export default MultiStepForm;
