@@ -14,16 +14,22 @@ const Results = () => {
   useEffect(() => {
     const storedResults = localStorage.getItem("generatedProfessors");
     if (storedResults) {
+      // Store all results initially
       setResults(JSON.parse(storedResults));
     }
   }, []);
 
   const handleGenerateEmails = () => {
-    const allResults = [...results];
+    const allResults = JSON.parse(localStorage.getItem("generatedProfessors") || "[]");
+    console.log(`Generating ${numberOfEmails} emails from ${allResults.length} available professors`);
+    
+    // Take only the number of results that the user selected
     const selectedResults = allResults.slice(0, numberOfEmails);
+    console.log(`Selected ${selectedResults.length} professors for email generation`);
+    
     setResults(selectedResults);
     setShowResults(true);
-    toast.success(`Generated ${numberOfEmails} personalized emails`);
+    toast.success(`Generated ${selectedResults.length} personalized emails`);
   };
 
   if (!showResults) {
