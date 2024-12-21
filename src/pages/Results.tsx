@@ -48,6 +48,7 @@ const Results = () => {
                   <span>50 emails</span>
                 </div>
                 <Slider
+                  defaultValue={[numberOfEmails]}
                   value={[numberOfEmails]}
                   onValueChange={(value) => setNumberOfEmails(value[0])}
                   max={50}
