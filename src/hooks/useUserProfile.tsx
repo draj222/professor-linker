@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
 export const useUserProfile = () => {
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -46,12 +46,11 @@ export const useUserProfile = () => {
 
             if (updateError) {
               console.error('Error updating profile with metadata name:', updateError);
-            } else {
-              setUserName(fullName);
             }
+            setUserName(fullName);
           } else {
             console.log('No full name found in profile or metadata');
-            setUserName('');
+            setUserName(null);
           }
         }
       } catch (error) {
@@ -69,5 +68,5 @@ export const useUserProfile = () => {
     fetchUserProfile();
   }, [toast]);
 
-  return { userName, isLoading };
+  return { userName: userName || 'Your name', isLoading };
 };
