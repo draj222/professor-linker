@@ -2,6 +2,9 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export const MultiStepForm = () => {
   const [fieldOfInterest, setFieldOfInterest] = useState("");
@@ -47,24 +50,38 @@ export const MultiStepForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        value={fieldOfInterest}
-        onChange={(e) => setFieldOfInterest(e.target.value)}
-        placeholder="Field of Interest"
-        required
-      />
-      <input
-        type="text"
-        value={userName}
-        onChange={(e) => setUserName(e.target.value)}
-        placeholder="Your Name"
-        required
-      />
-      <button type="submit" disabled={isLoading}>
-        {isLoading ? "Generating..." : "Generate Emails"}
-      </button>
-    </form>
+    <Card className="max-w-xl mx-auto bg-white/10 backdrop-blur-lg border-gray-700">
+      <CardContent className="p-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              type="text"
+              value={fieldOfInterest}
+              onChange={(e) => setFieldOfInterest(e.target.value)}
+              placeholder="Field of Interest (e.g., Machine Learning)"
+              className="bg-white text-gray-900 border-gray-200"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Your Name"
+              className="bg-white text-gray-900 border-gray-200"
+              required
+            />
+          </div>
+          <Button 
+            type="submit" 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            disabled={isLoading}
+          >
+            {isLoading ? "Generating..." : "Generate Emails"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
