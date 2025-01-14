@@ -17,16 +17,13 @@ serve(async (req) => {
   }
 
   try {
-    console.log("Starting professor generation request");
     const { fieldOfInterest } = await req.json();
     
     if (!fieldOfInterest) {
-      console.error("No field of interest provided");
       throw new Error('Field of interest is required');
     }
 
     if (!openAIApiKey) {
-      console.error("OpenAI API key not configured");
       throw new Error('OpenAI API key is not configured');
     }
 
@@ -39,21 +36,13 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    console.log('Fetching activities for user:', authData.user.id);
-    const { data: activitiesData, error: activitiesError } = await supabase
+    const { data: activitiesData } = await supabase
       .from('user_activities')
       .select('activities')
       .eq('user_id', authData.user.id)
       .single();
 
-    if (activitiesError) {
-      console.error('Error fetching activities:', activitiesError);
-    }
-
     const userActivities = activitiesData?.activities || '';
-    console.log('User activities:', userActivities);
-
-    console.log(`Generating professors for field: ${fieldOfInterest}`);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -62,31 +51,17 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
-            content: `You are an expert academic researcher with deep knowledge of universities and research institutions worldwide. 
-            Your task is to identify 5 promising researchers in ${fieldOfInterest} who would be excellent potential advisors.
-            
-            Focus on:
-            1. Early to mid-career professors doing innovative work
-            2. Researchers at reputable institutions with active research programs
-            3. Scientists publishing significant work in ${fieldOfInterest} within the last 2-3 years
-            
-            For each researcher, provide:
-            - Full name with appropriate title (Dr./Prof.)
-            - Institutional email (use only real university domains)
-            - Current academic position
-            - Full institution name
-            - A detailed 2-3 sentence description of their recent, specific research contributions
-            
-            Return ONLY a JSON array of objects with these exact fields:
-            - name (string)
-            - email (string)
-            - position (string)
-            - institution (string)
-            - recentWork (string)`
+            content: `You are an expert academic researcher. Generate 5 promising researchers in ${fieldOfInterest} who would be excellent potential advisors.
+            Focus on early to mid-career professors doing innovative work at reputable institutions.
+            For each researcher, provide their full name, institutional email, current position, institution name, and recent research contributions.`
+          },
+          {
+            role: 'user',
+            content: `Generate 5 researchers in ${fieldOfInterest} with their details.`
           }
         ],
         temperature: 0.7,
@@ -95,66 +70,46 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('OpenAI API error:', errorData);
       throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log("Received response from OpenAI");
+    
+    if (!data.choices?.[0]?.message?.content) {
+      throw new Error('Invalid response from OpenAI');
+    }
 
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error("Invalid response format from OpenAI:", data);
+    const professors = JSON.parse(data.choices[0].message.content);
+    
+    if (!Array.isArray(professors)) {
       throw new Error('Invalid response format from OpenAI');
     }
 
-    let professors;
-    try {
-      const content = data.choices[0].message.content;
-      professors = typeof content === 'string' ? JSON.parse(content) : content;
-      
-      if (!Array.isArray(professors)) {
-        console.error("Response is not an array:", professors);
-        throw new Error('Invalid response format: not an array');
-      }
+    const processedProfessors = professors.map(prof => ({
+      ...prof,
+      generatedEmail: `Dear Dr. ${prof.name.split(' ').pop()},
 
-      console.log(`Successfully generated ${professors.length} professors`);
-      
-      // Generate personalized email for each professor
-      professors = professors.map(prof => ({
-        ...prof,
-        generatedEmail: `Dear Dr. ${prof.name.split(' ').pop()},
-
-I hope this email finds you well. My name is [Your Name], and I am a student deeply passionate about ${fieldOfInterest}. I am reaching out to express my interest in working on research projects under your guidance.
+I hope this email finds you well. I am a student deeply passionate about ${fieldOfInterest}. I am reaching out to express my interest in working on research projects under your guidance.
 
 I was particularly intrigued by your recent work on ${prof.recentWork}. Your innovative approach aligns perfectly with my interests and aspirations in ${fieldOfInterest}.
 
 ${userActivities ? `Through my experiences, I have developed relevant skills and demonstrated my commitment to research. ${userActivities}` : ''}
 
-I would greatly appreciate any opportunity to contribute to your research projects under your expertise and guidance. As a committed and passionate student, I am open to working in any capacity that would allow me to learn and make meaningful contributions to your work.
+I would greatly appreciate any opportunity to contribute to your research projects under your expertise and guidance. I am open to working in any capacity that would allow me to learn and make meaningful contributions to your work.
 
 Thank you for considering my request. I am available to discuss potential opportunities at your convenience.
 
 Best regards,
 [Your Name]`
-      }));
+    }));
 
-      return new Response(JSON.stringify(professors), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-
-    } catch (error) {
-      console.error('Error parsing OpenAI response:', error);
-      throw new Error('Failed to parse researcher data from OpenAI response');
-    }
+    return new Response(JSON.stringify(processedProfessors), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
     
   } catch (error) {
-    console.error('Error in getprofessors function:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        details: 'Failed to generate professors. Please try again.'
-      }), 
+      JSON.stringify({ error: error.message }), 
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

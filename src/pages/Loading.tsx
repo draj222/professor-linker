@@ -14,51 +14,30 @@ const Loading = () => {
           throw new Error("No field of interest specified");
         }
 
-        console.log("Starting professor generation for field:", fieldOfInterest);
-        
-        // First check if user is authenticated
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) {
-          console.error('Authentication error:', authError);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
           throw new Error("You must be logged in to generate professors");
         }
 
-        console.log("User authenticated, proceeding with generation");
-        
         const { data, error } = await supabase.functions.invoke('getprofessors', {
-          body: { 
-            fieldOfInterest,
-            numberOfProfessors: 5
-          }
+          body: { fieldOfInterest }
         });
 
-        if (error) {
-          console.error('Edge function error:', error);
-          throw error;
-        }
-
-        if (!data) {
-          console.error("No data received from edge function");
-          throw new Error("Failed to generate professors - no data received");
-        }
+        if (error) throw error;
 
         if (!Array.isArray(data)) {
-          console.error("Invalid data format received:", data);
           throw new Error("Invalid response format from server");
         }
 
-        console.log("Successfully generated professors:", data);
         localStorage.setItem("generatedProfessors", JSON.stringify(data));
         navigate("/generating");
 
       } catch (error) {
-        console.error("Error generating professors:", error);
-        toast.error(error.message || "Failed to generate professors. Please try again.");
+        toast.error(error.message || "Failed to generate professors");
         navigate("/pricing");
       }
     };
 
-    // Start generation after a short delay to ensure loading animation is visible
     const timer = setTimeout(() => {
       generateProfessors();
     }, 1000);
