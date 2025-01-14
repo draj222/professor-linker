@@ -13,10 +13,16 @@ export const HeroSection = () => {
     e.preventDefault();
     if (searchQuery.trim()) {
       setIsLoading(true);
-      // Add a delay of 1.5 seconds before navigation
       await new Promise(resolve => setTimeout(resolve, 1500));
       navigate('/login');
     }
+  };
+
+  const handleSuggestionClick = async (suggestion: string) => {
+    setSearchQuery(suggestion);
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    navigate('/login');
   };
 
   return (
@@ -45,13 +51,28 @@ export const HeroSection = () => {
       <div className="flex flex-col md:flex-row gap-4 justify-center mb-12">
         <p className="text-gray-400">Try asking about:</p>
         <div className="flex flex-wrap gap-4 justify-center">
-          <Button variant="outline" className="bg-white/5 border-gray-700 text-gray-300 hover:bg-white/10">
+          <Button 
+            variant="outline" 
+            className="bg-white/5 border-gray-700 text-gray-300 hover:bg-white/10"
+            onClick={() => handleSuggestionClick('Research Collaboration')}
+            disabled={isLoading}
+          >
             Research Collaboration
           </Button>
-          <Button variant="outline" className="bg-white/5 border-gray-700 text-gray-300 hover:bg-white/10">
+          <Button 
+            variant="outline" 
+            className="bg-white/5 border-gray-700 text-gray-300 hover:bg-white/10"
+            onClick={() => handleSuggestionClick('PhD Applications')}
+            disabled={isLoading}
+          >
             PhD Applications
           </Button>
-          <Button variant="outline" className="bg-white/5 border-gray-700 text-gray-300 hover:bg-white/10">
+          <Button 
+            variant="outline" 
+            className="bg-white/5 border-gray-700 text-gray-300 hover:bg-white/10"
+            onClick={() => handleSuggestionClick('Academic Networking')}
+            disabled={isLoading}
+          >
             Academic Networking
           </Button>
         </div>
