@@ -12,6 +12,7 @@ const Index = () => {
   const [user, setUser] = useState(null);
   const [planInfo, setPlanInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,6 +64,13 @@ const Index = () => {
     }
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate('/login');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black text-white">
@@ -100,16 +108,18 @@ const Index = () => {
             All-in-one AI tools for students and researchers to find and connect with leading academics in their field.
           </p>
           
-          <div className="max-w-2xl mx-auto mb-12">
+          <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto mb-12">
             <div className="relative">
               <Input 
                 type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Try: How to connect with professors in quantum computing?"
                 className="w-full px-6 py-6 text-lg bg-white/10 backdrop-blur-lg border-gray-700 text-white placeholder:text-gray-400"
               />
               <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
-          </div>
+          </form>
 
           <div className="flex flex-col md:flex-row gap-4 justify-center mb-12">
             <p className="text-gray-400">Try asking about:</p>
