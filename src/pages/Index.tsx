@@ -3,9 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navbar } from '@/components/Navbar';
-import { Mail, Package } from 'lucide-react';
+import { Mail, Package, Globe, Rocket, Users } from 'lucide-react';
 import { Login } from '@/components/Login';
 import { MultiStepForm } from '@/components/MultiStepForm';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [user, setUser] = useState(null);
@@ -73,11 +74,74 @@ const Index = () => {
     );
   }
 
+  const LandingContent = () => (
+    <div className="container mx-auto px-4 py-20">
+      <div className="text-center mb-16">
+        <h1 className="text-5xl font-bold text-white mb-6">
+          Connect with Leading Professors in Your Field
+        </h1>
+        <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          Professor Linker helps you reach out to academics who share your research interests. Generate personalized emails and start meaningful academic conversations.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-8 mb-16">
+        <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Globe className="h-6 w-6 text-blue-400" />
+              Global Network
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-gray-300">
+            Access a worldwide network of professors and researchers in your field of interest.
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Rocket className="h-6 w-6 text-blue-400" />
+              Smart Matching
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-gray-300">
+            Our AI matches you with professors based on your research interests and academic goals.
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Users className="h-6 w-6 text-blue-400" />
+              Personalized Outreach
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-gray-300">
+            Generate customized emails that highlight your genuine interest and relevant background.
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="text-center">
+        <Button 
+          size="lg"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg rounded-lg"
+          onClick={() => document.getElementById('login-section')?.scrollIntoView({ behavior: 'smooth' })}
+        >
+          Get Started
+        </Button>
+      </div>
+    </div>
+  );
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black">
-        <div className="container mx-auto px-4 py-20">
-          <h1 className="text-4xl font-bold text-white mb-8 text-center">Welcome to Professor Linker</h1>
+        <Navbar />
+        <LandingContent />
+        <div id="login-section" className="container mx-auto px-4 py-20">
+          <h2 className="text-4xl font-bold text-white mb-8 text-center">Join Professor Linker</h2>
           <Login />
         </div>
       </div>
