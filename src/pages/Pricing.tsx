@@ -32,8 +32,6 @@ const PricingPage = () => {
 
   const handleGetStarted = async (plan: string) => {
     if (plan === "Basic") {
-      setIsGenerating(true);
-      
       const fieldOfInterest = localStorage.getItem("fieldOfInterest");
       if (!fieldOfInterest) {
         toast({
@@ -44,6 +42,9 @@ const PricingPage = () => {
         navigate("/");
         return;
       }
+
+      setIsGenerating(true);
+      navigate("/loading");
 
       try {
         const { data, error } = await supabase.functions.invoke('getprofessors', {
@@ -60,6 +61,7 @@ const PricingPage = () => {
             description: "Failed to generate professors list. Please try again.",
             variant: "destructive",
           });
+          navigate("/pricing");
           return;
         }
 
@@ -74,6 +76,7 @@ const PricingPage = () => {
           description: "Something went wrong. Please try again later.",
           variant: "destructive",
         });
+        navigate("/pricing");
       } finally {
         setIsGenerating(false);
       }
@@ -122,7 +125,7 @@ const PricingPage = () => {
                 onClick={() => handleGetStarted(plan.name)}
                 disabled={isGenerating}
               >
-                {isGenerating ? "Generating..." : "Get Started"}
+                {isGenerating && plan.name === "Basic" ? "Generating..." : "Get Started"}
               </Button>
             </Card>
           ))}
