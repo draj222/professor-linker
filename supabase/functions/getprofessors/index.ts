@@ -9,7 +9,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -37,23 +36,33 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
-            content: `You are an expert in academic research and university faculty. Generate a list of 5 emerging researchers in ${fieldOfInterest}, focusing on:
-              1. Early-career professors or assistant professors who are doing innovative work
-              2. Outstanding PhD candidates or postdoctoral researchers at top universities
-              3. Researchers who are publishing interesting work in ${fieldOfInterest}
-              
-              For each person, provide:
-              - name
-              - email (use real university domains)
-              - position
-              - institution
-              - recentWork (a brief description of their recent research)
-              
-              Return ONLY a JSON array of objects with these exact fields. Do not include any other text or explanation.`
+            content: `You are an expert academic researcher with deep knowledge of universities and research institutions worldwide. 
+            Your task is to identify 5 promising researchers in ${fieldOfInterest} who would be excellent potential advisors.
+            
+            Focus on:
+            1. Early to mid-career professors doing innovative work
+            2. Researchers at reputable institutions with active research programs
+            3. Scientists publishing significant work in ${fieldOfInterest} within the last 2-3 years
+            
+            For each researcher, provide:
+            - Full name with appropriate title (Dr./Prof.)
+            - Institutional email (use only real university domains)
+            - Current academic position
+            - Full institution name
+            - A detailed 2-3 sentence description of their recent, specific research contributions
+            
+            Ensure all information is current and verifiable. Return ONLY a JSON array of objects with these exact fields:
+            - name (string)
+            - email (string)
+            - position (string)
+            - institution (string)
+            - recentWork (string)
+            
+            Make the recentWork field specific and technical, mentioning actual research topics and findings.`
           }
         ],
         temperature: 0.7,
@@ -89,14 +98,21 @@ serve(async (req) => {
 
       console.log(`Successfully generated ${professors.length} professors`);
       
-      // Validate and sanitize each professor object
+      // Generate personalized emails for each professor
       professors = professors.map(prof => ({
-        name: prof.name || 'Unknown',
-        email: prof.email || 'no-email@university.edu',
-        position: prof.position || 'Researcher',
-        institution: prof.institution || 'Unknown Institution',
-        recentWork: prof.recentWork || 'Recent research information not available',
-        generatedEmail: `Dear ${prof.name},\n\nI hope this email finds you well. I am writing to express my interest in your research work on ${prof.recentWork}. Your work aligns perfectly with my academic interests, and I would be grateful for the opportunity to discuss potential research opportunities.\n\nBest regards`
+        ...prof,
+        generatedEmail: `Dear ${prof.name},
+
+I hope this email finds you well. I am writing to express my sincere interest in your research work, particularly your recent contributions to ${prof.recentWork}. Your innovative approach and findings in this area align perfectly with my academic interests and career goals.
+
+I am particularly impressed by your work at ${prof.institution} and would be grateful for the opportunity to discuss potential research opportunities in your lab. Your expertise in ${fieldOfInterest} would provide invaluable guidance for my academic journey.
+
+I would appreciate the chance to learn more about your current research projects and explore possibilities for collaboration. Would you be available for a brief discussion about potential research opportunities in your group?
+
+Thank you for considering my request. I look forward to your response.
+
+Best regards,
+[Your name]`
       }));
 
     } catch (error) {
