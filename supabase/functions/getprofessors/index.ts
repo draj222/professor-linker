@@ -1,7 +1,10 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,6 +30,30 @@ serve(async (req) => {
       throw new Error('OpenAI API key is not configured');
     }
 
+    // Initialize Supabase client
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+
+    // Get user's activities
+    const { data: authData } = await supabase.auth.getUser(req.headers.get('Authorization')?.split('Bearer ')[1] || '');
+    if (!authData.user) {
+      throw new Error('User not authenticated');
+    }
+
+    console.log('Fetching activities for user:', authData.user.id);
+    const { data: activitiesData, error: activitiesError } = await supabase
+      .from('user_activities')
+      .select('activities')
+      .eq('user_id', authData.user.id)
+      .single();
+
+    if (activitiesError) {
+      console.error('Error fetching activities:', activitiesError);
+      throw activitiesError;
+    }
+
+    const userActivities = activitiesData?.activities || '';
+    console.log('User activities:', userActivities);
+
     console.log(`Generating professors for field: ${fieldOfInterest}`);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -36,7 +63,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -96,6 +123,7 @@ serve(async (req) => {
 
       console.log(`Successfully generated ${professors.length} professors`);
       
+      // Generate personalized email for each professor
       professors = professors.map(prof => ({
         ...prof,
         generatedEmail: `Dear Dr. ${prof.name.split(' ').pop()},
@@ -104,8 +132,7 @@ I hope this email finds you well. My name is ${userName}, and I am a high school
 
 I was particularly intrigued by your recent work on ${prof.recentWork}. Your innovative approach aligns perfectly with my interests and aspirations in ${fieldOfInterest}.
 
-My experience includes:
-[Your experience and achievements will be automatically filled in from your profile]
+${userActivities ? `Through my experiences, I have developed relevant skills and demonstrated my commitment to research. ${userActivities}` : ''}
 
 I would greatly appreciate any opportunity to contribute to your research projects under your expertise and guidance. As a committed and passionate student, I am open to working in any capacity that would allow me to learn and make meaningful contributions to your work.
 
