@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navbar } from '@/components/Navbar';
 import { Mail, Package, Globe, Rocket, Users, Search, Brain, Sparkles } from 'lucide-react';
-import { Login } from '@/components/Login';
 import { MultiStepForm } from '@/components/MultiStepForm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,10 +83,7 @@ const Index = () => {
             <Button 
               variant="outline"
               className="bg-white/10 border-gray-700 text-white hover:bg-white/20"
-              onClick={() => document.getElementById('login-section')?.scrollIntoView({ 
-                behavior: 'smooth',
-                block: 'center'
-              })}
+              onClick={() => navigate('/login')}
             >
               Sign In
             </Button>
@@ -173,7 +169,7 @@ const Index = () => {
           <Button 
             size="lg"
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg rounded-lg"
-            onClick={() => document.getElementById('login-section')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => navigate('/login')}
           >
             Get Started Free
           </Button>
@@ -186,10 +182,6 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black">
         <LandingContent />
-        <div id="login-section" className="container mx-auto px-4 py-20">
-          <h2 className="text-4xl font-bold text-white mb-8 text-center">Join Professor Linker</h2>
-          <Login />
-        </div>
       </div>
     );
   }

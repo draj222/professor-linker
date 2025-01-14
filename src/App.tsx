@@ -8,6 +8,7 @@ import Loading from "./pages/Loading";
 import Pricing from "./pages/Pricing";
 import Results from "./pages/Results";
 import GeneratingResults from "./pages/GeneratingResults";
+import LoginPage from "./pages/LoginPage";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/loading" element={<Loading />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/generating" element={<GeneratingResults />} />
