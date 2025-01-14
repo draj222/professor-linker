@@ -7,6 +7,7 @@ import { Navigation } from '@/components/landing/Navigation';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { FeatureCards } from '@/components/landing/FeatureCards';
 import { AuthenticatedDashboard } from '@/components/landing/AuthenticatedDashboard';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [user, setUser] = useState(null);
