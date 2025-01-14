@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 const PricingPage = () => {
@@ -34,56 +34,25 @@ const PricingPage = () => {
     if (plan === "Basic") {
       const fieldOfInterest = localStorage.getItem("fieldOfInterest");
       if (!fieldOfInterest) {
-        toast({
-          title: "Error",
-          description: "Please complete the form first to specify your field of interest.",
-          variant: "destructive",
-        });
+        toast.error("Please complete the form first to specify your field of interest.");
         navigate("/");
         return;
       }
 
-      setIsGenerating(true);
-      navigate("/loading");
-
       try {
-        const { data, error } = await supabase.functions.invoke('getprofessors', {
-          body: {
-            fieldOfInterest,
-            numberOfProfessors: 5
-          }
-        });
+        setIsGenerating(true);
+        console.log("Starting professor generation for field:", fieldOfInterest);
+        
+        // Navigate to loading page first
+        navigate("/loading");
 
-        if (error) {
-          console.error('Edge function error:', error);
-          toast({
-            title: "Error",
-            description: "Failed to generate professors list. Please try again.",
-            variant: "destructive",
-          });
-          navigate("/pricing");
-          return;
-        }
-
-        if (data) {
-          localStorage.setItem('professors', JSON.stringify(data));
-          navigate("/generating");
-        }
       } catch (error) {
-        console.error('Error calling edge function:', error);
-        toast({
-          title: "Error",
-          description: "Something went wrong. Please try again later.",
-          variant: "destructive",
-        });
-        navigate("/pricing");
-      } finally {
+        console.error('Error in pricing flow:', error);
+        toast.error("Something went wrong. Please try again.");
         setIsGenerating(false);
       }
     } else {
-      toast({
-        description: "Coming soon! Only Basic plan is available now.",
-      });
+      toast("Coming soon! Only Basic plan is available now.");
     }
   };
 
