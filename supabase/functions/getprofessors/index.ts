@@ -17,7 +17,7 @@ serve(async (req) => {
     console.log("Starting professor generation request");
     const { fieldOfInterest, userName, numberOfProfessors, extracurriculars } = await req.json();
     
-    // Ensure numberOfProfessors is a valid number
+    // Ensure numberOfProfessors is a valid number between 1 and 50
     const requestedCount = Math.min(Math.max(parseInt(numberOfProfessors) || 5, 1), 50);
     
     console.log(`Generating ${requestedCount} professors for field: ${fieldOfInterest}`);
@@ -45,35 +45,38 @@ serve(async (req) => {
           {
             role: 'system',
             content: `You are an expert academic researcher with deep knowledge of universities and research institutions worldwide. 
-            Your task is to identify EXACTLY ${requestedCount} promising researchers in ${fieldOfInterest} who would be excellent potential advisors.
+            Generate EXACTLY ${requestedCount} professors based on the following criteria:
             
-            Focus on:
-            1. Early to mid-career professors doing innovative work
-            2. Researchers at reputable institutions with active research programs
-            3. Scientists publishing significant work in ${fieldOfInterest} within the last 2-3 years
+            Field: ${fieldOfInterest}
             
-            For each researcher, provide:
-            - Full name with appropriate title (Dr./Prof.)
-            - Institutional email (use only real university domains)
-            - Current academic position
-            - Full institution name
-            - A detailed 2-3 sentence description of their recent, specific research contributions
+            For each professor, provide:
+            1. Full name (prefix with Dr. or Prof.)
+            2. Institutional email (use real university domains)
+            3. Current position (e.g., Assistant Professor, Associate Professor)
+            4. Full institution name
+            5. Recent research work (2-3 specific, technical sentences about their work)
             
-            Ensure all information is current and verifiable. Return ONLY a JSON array containing EXACTLY ${requestedCount} objects with these exact fields:
-            - name (string)
-            - email (string)
-            - position (string)
-            - institution (string)
-            - recentWork (string)
+            Format: Return a JSON array with EXACTLY ${requestedCount} objects containing these fields:
+            {
+              "name": "string",
+              "email": "string",
+              "position": "string", 
+              "institution": "string",
+              "recentWork": "string"
+            }
             
-            Make the recentWork field specific and technical, mentioning actual research topics and findings.
+            Requirements:
+            - Generate EXACTLY ${requestedCount} professors, no more and no less
+            - Focus on early to mid-career professors
+            - Use only real universities and institutions
+            - Make research descriptions specific and technical
+            - Ensure email domains match the institutions
             
-            CRITICAL: Your response MUST contain EXACTLY ${requestedCount} professors in the array, no more and no less.
-            If you return a different number, the request will fail.`
+            If you return anything other than exactly ${requestedCount} professors, the request will fail.`
           }
         ],
         temperature: 0.7,
-        max_tokens: 2500,
+        max_tokens: 3000,
         presence_penalty: 0.1,
         frequency_penalty: 0.1
       }),
@@ -105,7 +108,7 @@ serve(async (req) => {
       // Strict validation of professor count
       if (professors.length !== requestedCount) {
         console.error(`Expected ${requestedCount} professors but got ${professors.length}`);
-        throw new Error(`Invalid number of professors generated. Retrying...`);
+        throw new Error(`Invalid number of professors generated. Expected ${requestedCount}, got ${professors.length}`);
       }
 
       console.log(`Successfully generated ${professors.length} professors`);
