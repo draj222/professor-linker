@@ -30,6 +30,10 @@ serve(async (req) => {
       throw new Error('Field of interest is required');
     }
 
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key is not configured');
+    }
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -37,7 +41,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           { role: 'system', content: systemPrompt },
           { 
@@ -45,19 +49,34 @@ serve(async (req) => {
             content: `Generate ${numberOfProfessors} emerging researchers specializing in ${fieldOfInterest}. Include early-career professors, promising PhD candidates, and postdoctoral researchers. Include their name, email (using real university domains), position, institution, and a brief description of their recent innovative work. Focus on those making interesting contributions but who aren't yet widely known in their field.` 
           }
         ],
-        temperature: 0.7,
-        response_format: { type: "json_object" }
+        temperature: 0.7
       }),
     });
 
     if (!response.ok) {
+      const errorData = await response.text();
+      console.error('OpenAI API error:', errorData);
       throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
     const data = await response.json();
     console.log("Received response from OpenAI");
 
-    let professors = JSON.parse(data.choices[0].message.content).professors;
+    let professors;
+    try {
+      const content = data.choices[0].message.content;
+      professors = typeof content === 'string' ? JSON.parse(content) : content;
+      
+      // Ensure we have an array of professors
+      professors = Array.isArray(professors) ? professors : 
+                  Array.isArray(professors.professors) ? professors.professors : 
+                  [];
+                  
+      console.log(`Successfully parsed ${professors.length} researchers`);
+    } catch (error) {
+      console.error('Error parsing OpenAI response:', error);
+      throw new Error('Failed to parse researcher data from OpenAI response');
+    }
 
     // Generate personalized emails for each researcher
     professors = await Promise.all(professors.map(async (prof) => {
@@ -69,7 +88,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4',
             messages: [
               { 
                 role: 'system', 
@@ -110,7 +129,10 @@ serve(async (req) => {
         };
       } catch (error) {
         console.error('Error generating email for researcher:', prof.name, error);
-        return prof;
+        return {
+          ...prof,
+          generatedEmail: 'Failed to generate email. Please try again.',
+        };
       }
     }));
 
