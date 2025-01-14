@@ -16,7 +16,7 @@ serve(async (req) => {
 
   try {
     console.log("Starting professor generation request");
-    const { fieldOfInterest, userName, numberOfProfessors, extracurriculars } = await req.json();
+    const { fieldOfInterest, userName, numberOfProfessors = 5, extracurriculars } = await req.json();
     
     console.log(`Generating ${numberOfProfessors} professors for field: ${fieldOfInterest}`);
     console.log("User experience:", extracurriculars);
@@ -38,7 +38,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
@@ -64,7 +64,9 @@ serve(async (req) => {
             - institution (string)
             - recentWork (string)
             
-            Make the recentWork field specific and technical, mentioning actual research topics and findings.`
+            Make the recentWork field specific and technical, mentioning actual research topics and findings.
+            
+            IMPORTANT: You must return exactly ${numberOfProfessors} professors, no more and no less.`
           }
         ],
         temperature: 0.7,
@@ -83,19 +85,23 @@ serve(async (req) => {
     const data = await response.json();
     console.log("Received response from OpenAI");
 
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    if (!data.choices?.[0]?.message?.content) {
       console.error("Invalid response format from OpenAI:", data);
       throw new Error('Invalid response format from OpenAI');
     }
 
-    let professors;
     try {
       const content = data.choices[0].message.content;
-      professors = typeof content === 'string' ? JSON.parse(content) : content;
+      let professors = typeof content === 'string' ? JSON.parse(content) : content;
       
       if (!Array.isArray(professors)) {
         console.error("Response is not an array:", professors);
         throw new Error('Invalid response format: not an array');
+      }
+
+      if (professors.length !== numberOfProfessors) {
+        console.error(`Expected ${numberOfProfessors} professors but got ${professors.length}`);
+        throw new Error(`Invalid number of professors generated`);
       }
 
       console.log(`Successfully generated ${professors.length} professors`);
@@ -136,7 +142,6 @@ ${userName || '[Your name]'}`
       console.error('Error parsing OpenAI response:', error);
       throw new Error('Failed to parse researcher data from OpenAI response');
     }
-    
   } catch (error) {
     console.error('Error in getprofessors function:', error);
     return new Response(
