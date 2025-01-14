@@ -8,7 +8,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const systemPrompt = `You are an expert in academic research and university faculty. Generate a list of professors who specialize in the given field. Return the response as a JSON array of objects, where each object has the following properties: name, email, position, institution, and recentWork. Make sure to use real university domains for emails and focus on top universities.`;
+const systemPrompt = `You are an expert in academic research and university faculty. Generate a list of emerging researchers, focusing on:
+1. Early-career professors or assistant professors who are doing innovative work but aren't widely known yet
+2. Outstanding PhD candidates or postdoctoral researchers at top universities who are making significant contributions
+3. Researchers who are publishing interesting work but haven't achieved mainstream recognition yet
+
+For each person, ensure they are from reputable universities but prioritize those who are not yet widely known in their field. Return the response as a JSON array of objects, where each object has: name, email, position, institution, and recentWork. Use real university domains for emails.`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -17,9 +22,9 @@ serve(async (req) => {
 
   try {
     const { fieldOfInterest, userName, numberOfProfessors = 10 } = await req.json();
-    console.log("Generating professors for field:", fieldOfInterest);
+    console.log("Generating researchers for field:", fieldOfInterest);
     console.log("User name:", userName);
-    console.log("Number of professors requested:", numberOfProfessors);
+    console.log("Number of researchers requested:", numberOfProfessors);
 
     if (!fieldOfInterest) {
       throw new Error('Field of interest is required');
@@ -37,7 +42,7 @@ serve(async (req) => {
           { role: 'system', content: systemPrompt },
           { 
             role: 'user', 
-            content: `Generate ${numberOfProfessors} professors specializing in ${fieldOfInterest}. Include their name, email (using real university domains), position, institution, and a brief description of their recent work. Make it realistic and focused on top universities.` 
+            content: `Generate ${numberOfProfessors} emerging researchers specializing in ${fieldOfInterest}. Include early-career professors, promising PhD candidates, and postdoctoral researchers. Include their name, email (using real university domains), position, institution, and a brief description of their recent innovative work. Focus on those making interesting contributions but who aren't yet widely known in their field.` 
           }
         ],
         temperature: 0.7,
@@ -54,7 +59,7 @@ serve(async (req) => {
 
     let professors = JSON.parse(data.choices[0].message.content).professors;
 
-    // Generate personalized emails for each professor
+    // Generate personalized emails for each researcher
     professors = await Promise.all(professors.map(async (prof) => {
       try {
         const emailResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -69,21 +74,21 @@ serve(async (req) => {
               { 
                 role: 'system', 
                 content: `You are an expert at writing professional academic emails from the perspective of a passionate high school student.
-                Write a 200-word email to a professor expressing interest in their research.
+                Write a 200-word email to a researcher expressing interest in their work.
                 The email should:
                 - Be formal and well-structured
-                - Demonstrate knowledge of their work
+                - Show genuine interest in their specific research area
                 - Mention that you are a high school student passionate about their field
                 - Express enthusiasm for learning and potentially contributing
                 - Request an opportunity to learn more about their research or possibly shadow/intern
                 - Use proper grammar and punctuation
-                - Always address them as "Dr." followed by their last name
+                - Address PhD students as Mr./Ms. and professors as Dr.
                 - Be exactly 200 words
                 - Never use placeholders like [Your Name], always use the actual name provided` 
               },
               { 
                 role: 'user', 
-                content: `Write an email to Dr. ${prof.name} at ${prof.institution}.
+                content: `Write an email to ${prof.position.includes('PhD') || prof.position.includes('Postdoc') ? 'Mr./Ms.' : 'Dr.'} ${prof.name} at ${prof.institution}.
                 The email should be from ${userName}, a high school student interested in ${fieldOfInterest}.
                 Their recent work focuses on: ${prof.recentWork}
                 Make it exactly 200 words, formal, and enthusiastic.
@@ -104,12 +109,12 @@ serve(async (req) => {
           generatedEmail: emailData.choices[0].message.content,
         };
       } catch (error) {
-        console.error('Error generating email for professor:', prof.name, error);
+        console.error('Error generating email for researcher:', prof.name, error);
         return prof;
       }
     }));
 
-    console.log(`Successfully generated ${professors.length} professors with emails`);
+    console.log(`Successfully generated ${professors.length} researchers with emails`);
 
     return new Response(JSON.stringify(professors), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
