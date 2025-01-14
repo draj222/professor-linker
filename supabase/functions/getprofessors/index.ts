@@ -9,17 +9,13 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     console.log("Starting professor generation request");
-    const { fieldOfInterest, userName, numberOfProfessors = 5, extracurriculars } = await req.json();
-    
-    console.log(`Generating ${numberOfProfessors} professors for field: ${fieldOfInterest}`);
-    console.log("User experience:", extracurriculars);
+    const { fieldOfInterest, userName } = await req.json();
     
     if (!fieldOfInterest) {
       console.error("No field of interest provided");
@@ -31,6 +27,8 @@ serve(async (req) => {
       throw new Error('OpenAI API key is not configured');
     }
 
+    console.log(`Generating professors for field: ${fieldOfInterest}`);
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -38,12 +36,12 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
             content: `You are an expert academic researcher with deep knowledge of universities and research institutions worldwide. 
-            Your task is to identify ${numberOfProfessors} promising researchers in ${fieldOfInterest} who would be excellent potential advisors.
+            Your task is to identify 5 promising researchers in ${fieldOfInterest} who would be excellent potential advisors.
             
             Focus on:
             1. Early to mid-career professors doing innovative work
@@ -62,11 +60,7 @@ serve(async (req) => {
             - email (string)
             - position (string)
             - institution (string)
-            - recentWork (string)
-            
-            Make the recentWork field specific and technical, mentioning actual research topics and findings.
-            
-            IMPORTANT: You must return exactly ${numberOfProfessors} professors, no more and no less.`
+            - recentWork (string)`
           }
         ],
         temperature: 0.7,
@@ -85,63 +79,51 @@ serve(async (req) => {
     const data = await response.json();
     console.log("Received response from OpenAI");
 
-    if (!data.choices?.[0]?.message?.content) {
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       console.error("Invalid response format from OpenAI:", data);
       throw new Error('Invalid response format from OpenAI');
     }
 
+    let professors;
     try {
       const content = data.choices[0].message.content;
-      let professors = typeof content === 'string' ? JSON.parse(content) : content;
+      professors = typeof content === 'string' ? JSON.parse(content) : content;
       
       if (!Array.isArray(professors)) {
         console.error("Response is not an array:", professors);
         throw new Error('Invalid response format: not an array');
       }
 
-      if (professors.length !== numberOfProfessors) {
-        console.error(`Expected ${numberOfProfessors} professors but got ${professors.length}`);
-        throw new Error(`Invalid number of professors generated`);
-      }
-
       console.log(`Successfully generated ${professors.length} professors`);
-      
-      // Format extracurriculars as bullet points
-      const formattedExperience = extracurriculars
-        ? extracurriculars
-            .split('\n')
-            .map(exp => exp.trim())
-            .filter(exp => exp.length > 0)
-            .map(exp => `- ${exp}`)
-            .join('\n')
-        : '[No experience provided]';
       
       professors = professors.map(prof => ({
         ...prof,
         generatedEmail: `Dear Dr. ${prof.name.split(' ').pop()},
 
-I hope this email finds you well. My name is ${userName || '[Your name]'}, and I am a high school student deeply passionate about ${fieldOfInterest}. I am reaching out to express my interest in working on research projects under your guidance.
+I hope this email finds you well. My name is ${userName}, and I am a high school student deeply passionate about ${fieldOfInterest}. I am reaching out to express my interest in working on research projects under your guidance.
 
 I was particularly intrigued by your recent work on ${prof.recentWork}. Your innovative approach aligns perfectly with my interests and aspirations in ${fieldOfInterest}.
 
 My experience includes:
-${formattedExperience}
+[Your experience and achievements will be automatically filled in from your profile]
 
 I would greatly appreciate any opportunity to contribute to your research projects under your expertise and guidance. As a committed and passionate student, I am open to working in any capacity that would allow me to learn and make meaningful contributions to your work.
 
 Thank you for considering my request. I am available to discuss potential opportunities at your convenience.
 
 Best regards,
-${userName || '[Your name]'}`
+${userName}`
       }));
 
-      return new Response(JSON.stringify(professors), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);
       throw new Error('Failed to parse researcher data from OpenAI response');
     }
+
+    return new Response(JSON.stringify(professors), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+    
   } catch (error) {
     console.error('Error in getprofessors function:', error);
     return new Response(
