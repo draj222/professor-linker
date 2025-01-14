@@ -41,10 +41,10 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an expert in academic research and university faculty. Generate a list of 5 emerging researchers, focusing on:
+            content: `You are an expert in academic research and university faculty. Generate a list of 5 emerging researchers in ${fieldOfInterest}, focusing on:
               1. Early-career professors or assistant professors who are doing innovative work
               2. Outstanding PhD candidates or postdoctoral researchers at top universities
-              3. Researchers who are publishing interesting work
+              3. Researchers who are publishing interesting work in ${fieldOfInterest}
               
               For each person, provide:
               - name
@@ -53,15 +53,13 @@ serve(async (req) => {
               - institution
               - recentWork (a brief description of their recent research)
               
-              Return ONLY a JSON array of objects with these exact fields.`
-          },
-          {
-            role: 'user',
-            content: `Generate 5 emerging researchers specializing in ${fieldOfInterest}.`
+              Return ONLY a JSON array of objects with these exact fields. Do not include any other text or explanation.`
           }
         ],
         temperature: 0.7,
-        max_tokens: 2000
+        max_tokens: 2000,
+        presence_penalty: 0.1,
+        frequency_penalty: 0.1
       }),
     });
 
@@ -91,13 +89,14 @@ serve(async (req) => {
 
       console.log(`Successfully generated ${professors.length} professors`);
       
-      // Validate the structure of each professor object
+      // Validate and sanitize each professor object
       professors = professors.map(prof => ({
         name: prof.name || 'Unknown',
         email: prof.email || 'no-email@university.edu',
         position: prof.position || 'Researcher',
         institution: prof.institution || 'Unknown Institution',
-        recentWork: prof.recentWork || 'Recent research information not available'
+        recentWork: prof.recentWork || 'Recent research information not available',
+        generatedEmail: `Dear ${prof.name},\n\nI hope this email finds you well. I am writing to express my interest in your research work on ${prof.recentWork}. Your work aligns perfectly with my academic interests, and I would be grateful for the opportunity to discuss potential research opportunities.\n\nBest regards`
       }));
 
     } catch (error) {
@@ -114,7 +113,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: 'Check the function logs for more information'
+        details: 'Failed to generate professors. Please try again.'
       }), 
       {
         status: 500,
