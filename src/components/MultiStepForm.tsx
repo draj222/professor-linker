@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HelpCircle, ArrowRight, User, Briefcase, Award } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Tooltip,
   TooltipContent,
@@ -52,39 +51,10 @@ export const MultiStepForm = () => {
     }
 
     setIsLoading(true);
-    try {
-      // Get the current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("You must be logged in to continue");
-        return;
-      }
-
-      // Store activities in the database
-      const { error: activitiesError } = await supabase
-        .from('user_activities')
-        .upsert({
-          user_id: user.id,
-          activities: extracurriculars
-        });
-
-      if (activitiesError) {
-        console.error('Error storing activities:', activitiesError);
-        throw activitiesError;
-      }
-
-      // Store data in localStorage for the next page
-      localStorage.setItem("fieldOfInterest", fieldOfInterest);
-      localStorage.setItem("userName", userName);
-      localStorage.setItem("extracurriculars", extracurriculars);
-      
-      navigate("/loading");
-    } catch (error) {
-      console.error('Error in form submission:', error);
-      toast.error("An error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    localStorage.setItem("fieldOfInterest", fieldOfInterest);
+    localStorage.setItem("userName", userName);
+    localStorage.setItem("extracurriculars", extracurriculars);
+    navigate("/loading");
   };
 
   return (

@@ -14,30 +14,37 @@ const Loading = () => {
           throw new Error("No field of interest specified");
         }
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          throw new Error("You must be logged in to generate professors");
-        }
-
+        console.log("Generating professors for field:", fieldOfInterest);
+        
         const { data, error } = await supabase.functions.invoke('getprofessors', {
-          body: { fieldOfInterest }
+          body: { 
+            fieldOfInterest,
+            numberOfProfessors: 5
+          }
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Edge function error:', error);
+          throw error;
+        }
 
-        if (!Array.isArray(data)) {
+        if (!data || !Array.isArray(data)) {
+          console.error("Invalid data format received:", data);
           throw new Error("Invalid response format from server");
         }
 
+        console.log("Successfully generated professors:", data);
         localStorage.setItem("generatedProfessors", JSON.stringify(data));
         navigate("/generating");
 
       } catch (error) {
-        toast.error(error.message || "Failed to generate professors");
+        console.error("Error generating professors:", error);
+        toast.error("Failed to generate professors. Please try again.");
         navigate("/pricing");
       }
     };
 
+    // Start generation after a short delay to ensure loading animation is visible
     const timer = setTimeout(() => {
       generateProfessors();
     }, 1000);

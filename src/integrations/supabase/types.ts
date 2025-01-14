@@ -33,30 +33,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_activities: {
-        Row: {
-          activities: string
-          created_at: string
-          id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          activities: string
-          created_at?: string
-          id?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          activities?: string
-          created_at?: string
-          id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       user_plans: {
         Row: {
           created_at: string
