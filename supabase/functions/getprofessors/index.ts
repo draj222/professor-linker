@@ -9,6 +9,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -101,17 +102,19 @@ serve(async (req) => {
       
       // Format extracurriculars as bullet points
       const formattedExperience = extracurriculars
-        .split('\n')
-        .map(exp => exp.trim())
-        .filter(exp => exp.length > 0)
-        .map(exp => `- ${exp}`)
-        .join('\n');
+        ? extracurriculars
+            .split('\n')
+            .map(exp => exp.trim())
+            .filter(exp => exp.length > 0)
+            .map(exp => `- ${exp}`)
+            .join('\n')
+        : '[No experience provided]';
       
       professors = professors.map(prof => ({
         ...prof,
         generatedEmail: `Dear Dr. ${prof.name.split(' ').pop()},
 
-I hope this email finds you well. My name is ${userName}, and I am a high school student deeply passionate about ${fieldOfInterest}. I am reaching out to express my interest in working on research projects under your guidance.
+I hope this email finds you well. My name is ${userName || '[Your name]'}, and I am a high school student deeply passionate about ${fieldOfInterest}. I am reaching out to express my interest in working on research projects under your guidance.
 
 I was particularly intrigued by your recent work on ${prof.recentWork}. Your innovative approach aligns perfectly with my interests and aspirations in ${fieldOfInterest}.
 
@@ -123,17 +126,16 @@ I would greatly appreciate any opportunity to contribute to your research projec
 Thank you for considering my request. I am available to discuss potential opportunities at your convenience.
 
 Best regards,
-${userName}`
+${userName || '[Your name]'}`
       }));
 
+      return new Response(JSON.stringify(professors), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);
       throw new Error('Failed to parse researcher data from OpenAI response');
     }
-
-    return new Response(JSON.stringify(professors), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
     
   } catch (error) {
     console.error('Error in getprofessors function:', error);
