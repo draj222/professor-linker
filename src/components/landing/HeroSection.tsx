@@ -6,11 +6,15 @@ import { useState } from "react";
 
 export const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setIsLoading(true);
+      // Add a delay of 1.5 seconds before navigation
+      await new Promise(resolve => setTimeout(resolve, 1500));
       navigate('/login');
     }
   };
@@ -32,8 +36,9 @@ export const HeroSection = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Try: How to connect with professors in quantum computing?"
             className="w-full px-6 py-6 text-lg bg-white/10 backdrop-blur-lg border-gray-700 text-white placeholder:text-gray-400"
+            disabled={isLoading}
           />
-          <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Search className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${isLoading ? 'animate-spin text-blue-400' : 'text-gray-400'}`} />
         </div>
       </form>
 
