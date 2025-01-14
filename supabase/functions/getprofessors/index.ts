@@ -9,16 +9,18 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     console.log("Starting professor generation request");
-    const { fieldOfInterest, userName, numberOfProfessors = 5, extracurriculars } = await req.json();
+    const { fieldOfInterest, userName, numberOfProfessors, extracurriculars } = await req.json();
     
-    console.log(`Generating ${numberOfProfessors} professors for field: ${fieldOfInterest}`);
+    // Ensure numberOfProfessors is a valid number
+    const requestedCount = Math.min(Math.max(parseInt(numberOfProfessors) || 5, 1), 50);
+    
+    console.log(`Generating ${requestedCount} professors for field: ${fieldOfInterest}`);
     console.log("User experience:", extracurriculars);
     
     if (!fieldOfInterest) {
@@ -43,7 +45,7 @@ serve(async (req) => {
           {
             role: 'system',
             content: `You are an expert academic researcher with deep knowledge of universities and research institutions worldwide. 
-            Your task is to identify ${numberOfProfessors} promising researchers in ${fieldOfInterest} who would be excellent potential advisors.
+            Your task is to identify EXACTLY ${requestedCount} promising researchers in ${fieldOfInterest} who would be excellent potential advisors.
             
             Focus on:
             1. Early to mid-career professors doing innovative work
@@ -57,7 +59,7 @@ serve(async (req) => {
             - Full institution name
             - A detailed 2-3 sentence description of their recent, specific research contributions
             
-            Ensure all information is current and verifiable. Return ONLY a JSON array of objects with these exact fields:
+            Ensure all information is current and verifiable. Return ONLY a JSON array containing EXACTLY ${requestedCount} objects with these exact fields:
             - name (string)
             - email (string)
             - position (string)
@@ -66,11 +68,12 @@ serve(async (req) => {
             
             Make the recentWork field specific and technical, mentioning actual research topics and findings.
             
-            IMPORTANT: You must return exactly ${numberOfProfessors} professors, no more and no less.`
+            CRITICAL: Your response MUST contain EXACTLY ${requestedCount} professors in the array, no more and no less.
+            If you return a different number, the request will fail.`
           }
         ],
         temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 2500,
         presence_penalty: 0.1,
         frequency_penalty: 0.1
       }),
@@ -99,9 +102,10 @@ serve(async (req) => {
         throw new Error('Invalid response format: not an array');
       }
 
-      if (professors.length !== numberOfProfessors) {
-        console.error(`Expected ${numberOfProfessors} professors but got ${professors.length}`);
-        throw new Error(`Invalid number of professors generated`);
+      // Strict validation of professor count
+      if (professors.length !== requestedCount) {
+        console.error(`Expected ${requestedCount} professors but got ${professors.length}`);
+        throw new Error(`Invalid number of professors generated. Retrying...`);
       }
 
       console.log(`Successfully generated ${professors.length} professors`);
