@@ -3,10 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navbar } from '@/components/Navbar';
-import { Mail, Package, Globe, Rocket, Users } from 'lucide-react';
+import { Mail, Package, Globe, Rocket, Users, Search, Brain, Sparkles } from 'lucide-react';
 import { Login } from '@/components/Login';
 import { MultiStepForm } from '@/components/MultiStepForm';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const Index = () => {
   const [user, setUser] = useState(null);
@@ -75,64 +76,92 @@ const Index = () => {
   }
 
   const LandingContent = () => (
-    <div className="container mx-auto px-4 py-20">
-      <div className="text-center mb-16">
-        <h1 className="text-5xl font-bold text-white mb-6">
-          Connect with Leading Professors in Your Field
-        </h1>
-        <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-          Professor Linker helps you reach out to academics who share your research interests. Generate personalized emails and start meaningful academic conversations.
-        </p>
+    <>
+      <div className="container mx-auto px-4 py-12 md:py-24">
+        <div className="text-center mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+            The Smartest Way to Connect with Professors
+          </h1>
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
+            All-in-one AI tools for students and researchers to find and connect with leading academics in their field.
+          </p>
+          
+          <div className="max-w-2xl mx-auto mb-12">
+            <div className="relative">
+              <Input 
+                type="text" 
+                placeholder="Try: How to connect with professors in quantum computing?"
+                className="w-full px-6 py-6 text-lg bg-white/10 backdrop-blur-lg border-gray-700 text-white placeholder:text-gray-400"
+              />
+              <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4 justify-center mb-12">
+            <p className="text-gray-400">Try asking about:</p>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Button variant="outline" className="bg-white/5 border-gray-700 text-gray-300 hover:bg-white/10">
+                Research Collaboration
+              </Button>
+              <Button variant="outline" className="bg-white/5 border-gray-700 text-gray-300 hover:bg-white/10">
+                PhD Applications
+              </Button>
+              <Button variant="outline" className="bg-white/5 border-gray-700 text-gray-300 hover:bg-white/10">
+                Academic Networking
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <Card className="bg-white/5 backdrop-blur-lg border-gray-700 transform transition-all hover:scale-105">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Brain className="h-6 w-6 text-blue-400" />
+                AI-Powered Matching
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-gray-300">
+              Our advanced AI analyzes research papers and academic profiles to find the perfect professor matches for your interests.
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/5 backdrop-blur-lg border-gray-700 transform transition-all hover:scale-105">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Sparkles className="h-6 w-6 text-blue-400" />
+                Smart Email Generation
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-gray-300">
+              Generate personalized, professional emails that highlight your genuine interest and relevant background.
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/5 backdrop-blur-lg border-gray-700 transform transition-all hover:scale-105">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Globe className="h-6 w-6 text-blue-400" />
+                Global Network
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-gray-300">
+              Connect with leading academics from top universities worldwide in your field of research.
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="text-center">
+          <Button 
+            size="lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg rounded-lg"
+            onClick={() => document.getElementById('login-section')?.scrollIntoView({ behavior: 'smooth' })}
+          >
+            Get Started Free
+          </Button>
+        </div>
       </div>
-
-      <div className="grid md:grid-cols-3 gap-8 mb-16">
-        <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Globe className="h-6 w-6 text-blue-400" />
-              Global Network
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-gray-300">
-            Access a worldwide network of professors and researchers in your field of interest.
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Rocket className="h-6 w-6 text-blue-400" />
-              Smart Matching
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-gray-300">
-            Our AI matches you with professors based on your research interests and academic goals.
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Users className="h-6 w-6 text-blue-400" />
-              Personalized Outreach
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-gray-300">
-            Generate customized emails that highlight your genuine interest and relevant background.
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="text-center">
-        <Button 
-          size="lg"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg rounded-lg"
-          onClick={() => document.getElementById('login-section')?.scrollIntoView({ behavior: 'smooth' })}
-        >
-          Get Started
-        </Button>
-      </div>
-    </div>
+    </>
   );
 
   if (!user) {
