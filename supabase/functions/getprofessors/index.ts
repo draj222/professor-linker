@@ -15,7 +15,7 @@ serve(async (req) => {
 
   try {
     console.log("Starting professor generation request");
-    const { fieldOfInterest } = await req.json();
+    const { fieldOfInterest, userName } = await req.json();
     
     if (!fieldOfInterest) {
       console.error("No field of interest provided");
@@ -60,9 +60,7 @@ serve(async (req) => {
             - email (string)
             - position (string)
             - institution (string)
-            - recentWork (string)
-            
-            Make the recentWork field specific and technical, mentioning actual research topics and findings.`
+            - recentWork (string)`
           }
         ],
         temperature: 0.7,
@@ -100,18 +98,21 @@ serve(async (req) => {
       
       professors = professors.map(prof => ({
         ...prof,
-        generatedEmail: `Dear ${prof.name},
+        generatedEmail: `Dear Dr. ${prof.name.split(' ').pop()},
 
-I hope this email finds you well. I am writing to express my sincere interest in your research work, particularly your recent contributions to ${prof.recentWork}. Your innovative approach and findings in this area align perfectly with my academic interests and career goals.
+I hope this email finds you well. My name is ${userName}, and I am a high school student deeply passionate about ${fieldOfInterest}. I am reaching out to express my interest in working on research projects under your guidance.
 
-I am particularly impressed by your work at ${prof.institution} and would be grateful for the opportunity to discuss potential research opportunities in your lab. Your expertise in ${fieldOfInterest} would provide invaluable guidance for my academic journey.
+I was particularly intrigued by your recent work on ${prof.recentWork}. Your innovative approach aligns perfectly with my interests and aspirations in ${fieldOfInterest}.
 
-I would appreciate the chance to learn more about your current research projects and explore possibilities for collaboration. Would you be available for a brief discussion about potential research opportunities in your group?
+My experience includes:
+[Your experience and achievements will be automatically filled in from your profile]
 
-Thank you for considering my request. I look forward to your response.
+I would greatly appreciate any opportunity to contribute to your research projects under your expertise and guidance. As a committed and passionate student, I am open to working in any capacity that would allow me to learn and make meaningful contributions to your work.
+
+Thank you for considering my request. I am available to discuss potential opportunities at your convenience.
 
 Best regards,
-[Your name]`
+${userName}`
       }));
 
     } catch (error) {
