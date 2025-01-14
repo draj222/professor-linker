@@ -18,7 +18,7 @@ serve(async (req) => {
 
   try {
     console.log("Starting professor generation request");
-    const { fieldOfInterest, userName } = await req.json();
+    const { fieldOfInterest } = await req.json();
     
     if (!fieldOfInterest) {
       console.error("No field of interest provided");
@@ -48,7 +48,6 @@ serve(async (req) => {
 
     if (activitiesError) {
       console.error('Error fetching activities:', activitiesError);
-      throw activitiesError;
     }
 
     const userActivities = activitiesData?.activities || '';
@@ -82,7 +81,7 @@ serve(async (req) => {
             - Full institution name
             - A detailed 2-3 sentence description of their recent, specific research contributions
             
-            Ensure all information is current and verifiable. Return ONLY a JSON array of objects with these exact fields:
+            Return ONLY a JSON array of objects with these exact fields:
             - name (string)
             - email (string)
             - position (string)
@@ -92,8 +91,6 @@ serve(async (req) => {
         ],
         temperature: 0.7,
         max_tokens: 2000,
-        presence_penalty: 0.1,
-        frequency_penalty: 0.1
       }),
     });
 
@@ -128,7 +125,7 @@ serve(async (req) => {
         ...prof,
         generatedEmail: `Dear Dr. ${prof.name.split(' ').pop()},
 
-I hope this email finds you well. My name is ${userName}, and I am a high school student deeply passionate about ${fieldOfInterest}. I am reaching out to express my interest in working on research projects under your guidance.
+I hope this email finds you well. My name is [Your Name], and I am a student deeply passionate about ${fieldOfInterest}. I am reaching out to express my interest in working on research projects under your guidance.
 
 I was particularly intrigued by your recent work on ${prof.recentWork}. Your innovative approach aligns perfectly with my interests and aspirations in ${fieldOfInterest}.
 
@@ -139,17 +136,17 @@ I would greatly appreciate any opportunity to contribute to your research projec
 Thank you for considering my request. I am available to discuss potential opportunities at your convenience.
 
 Best regards,
-${userName}`
+[Your Name]`
       }));
+
+      return new Response(JSON.stringify(professors), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
 
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);
       throw new Error('Failed to parse researcher data from OpenAI response');
     }
-
-    return new Response(JSON.stringify(professors), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
     
   } catch (error) {
     console.error('Error in getprofessors function:', error);

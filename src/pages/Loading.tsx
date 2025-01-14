@@ -14,7 +14,16 @@ const Loading = () => {
           throw new Error("No field of interest specified");
         }
 
-        console.log("Generating professors for field:", fieldOfInterest);
+        console.log("Starting professor generation for field:", fieldOfInterest);
+        
+        // First check if user is authenticated
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+          console.error('Authentication error:', authError);
+          throw new Error("You must be logged in to generate professors");
+        }
+
+        console.log("User authenticated, proceeding with generation");
         
         const { data, error } = await supabase.functions.invoke('getprofessors', {
           body: { 
@@ -28,7 +37,12 @@ const Loading = () => {
           throw error;
         }
 
-        if (!data || !Array.isArray(data)) {
+        if (!data) {
+          console.error("No data received from edge function");
+          throw new Error("Failed to generate professors - no data received");
+        }
+
+        if (!Array.isArray(data)) {
           console.error("Invalid data format received:", data);
           throw new Error("Invalid response format from server");
         }
@@ -39,7 +53,7 @@ const Loading = () => {
 
       } catch (error) {
         console.error("Error generating professors:", error);
-        toast.error("Failed to generate professors. Please try again.");
+        toast.error(error.message || "Failed to generate professors. Please try again.");
         navigate("/pricing");
       }
     };
