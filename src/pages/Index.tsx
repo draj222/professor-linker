@@ -77,6 +77,24 @@ const Index = () => {
 
   const LandingContent = () => (
     <>
+      <div className="fixed top-0 left-0 right-0 z-50 bg-transparent">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center h-20">
+            <div className="text-white text-xl font-bold">Professor Linker</div>
+            <Button 
+              variant="outline"
+              className="bg-white/10 border-gray-700 text-white hover:bg-white/20"
+              onClick={() => document.getElementById('login-section')?.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'center'
+              })}
+            >
+              Sign In
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-12 md:py-24">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
@@ -167,7 +185,6 @@ const Index = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black">
-        <Navbar />
         <LandingContent />
         <div id="login-section" className="container mx-auto px-4 py-20">
           <h2 className="text-4xl font-bold text-white mb-8 text-center">Join Professor Linker</h2>
