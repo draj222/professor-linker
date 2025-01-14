@@ -15,7 +15,10 @@ serve(async (req) => {
 
   try {
     console.log("Starting professor generation request");
-    const { fieldOfInterest, userName } = await req.json();
+    const { fieldOfInterest, userName, numberOfProfessors, extracurriculars } = await req.json();
+    
+    console.log(`Generating ${numberOfProfessors} professors for field: ${fieldOfInterest}`);
+    console.log("User experience:", extracurriculars);
     
     if (!fieldOfInterest) {
       console.error("No field of interest provided");
@@ -26,8 +29,6 @@ serve(async (req) => {
       console.error("OpenAI API key not configured");
       throw new Error('OpenAI API key is not configured');
     }
-
-    console.log(`Generating professors for field: ${fieldOfInterest}`);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -41,7 +42,7 @@ serve(async (req) => {
           {
             role: 'system',
             content: `You are an expert academic researcher with deep knowledge of universities and research institutions worldwide. 
-            Your task is to identify 5 promising researchers in ${fieldOfInterest} who would be excellent potential advisors.
+            Your task is to identify ${numberOfProfessors} promising researchers in ${fieldOfInterest} who would be excellent potential advisors.
             
             Focus on:
             1. Early to mid-career professors doing innovative work
@@ -60,7 +61,9 @@ serve(async (req) => {
             - email (string)
             - position (string)
             - institution (string)
-            - recentWork (string)`
+            - recentWork (string)
+            
+            Make the recentWork field specific and technical, mentioning actual research topics and findings.`
           }
         ],
         temperature: 0.7,
@@ -96,6 +99,14 @@ serve(async (req) => {
 
       console.log(`Successfully generated ${professors.length} professors`);
       
+      // Format extracurriculars as bullet points
+      const formattedExperience = extracurriculars
+        .split('\n')
+        .map(exp => exp.trim())
+        .filter(exp => exp.length > 0)
+        .map(exp => `- ${exp}`)
+        .join('\n');
+      
       professors = professors.map(prof => ({
         ...prof,
         generatedEmail: `Dear Dr. ${prof.name.split(' ').pop()},
@@ -105,7 +116,7 @@ I hope this email finds you well. My name is ${userName}, and I am a high school
 I was particularly intrigued by your recent work on ${prof.recentWork}. Your innovative approach aligns perfectly with my interests and aspirations in ${fieldOfInterest}.
 
 My experience includes:
-[Your experience and achievements will be automatically filled in from your profile]
+${formattedExperience}
 
 I would greatly appreciate any opportunity to contribute to your research projects under your expertise and guidance. As a committed and passionate student, I am open to working in any capacity that would allow me to learn and make meaningful contributions to your work.
 
