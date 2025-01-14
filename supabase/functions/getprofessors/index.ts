@@ -36,7 +36,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
@@ -98,7 +98,6 @@ serve(async (req) => {
 
       console.log(`Successfully generated ${professors.length} professors`);
       
-      // Generate personalized emails for each professor
       professors = professors.map(prof => ({
         ...prof,
         generatedEmail: `Dear ${prof.name},
