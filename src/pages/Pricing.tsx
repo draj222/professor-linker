@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const PricingPage = () => {
   const navigate = useNavigate();
@@ -35,14 +36,51 @@ const PricingPage = () => {
       
       const fieldOfInterest = localStorage.getItem("fieldOfInterest");
       if (!fieldOfInterest) {
-        toast.error("Please complete the form first to specify your field of interest.");
+        toast({
+          title: "Error",
+          description: "Please complete the form first to specify your field of interest.",
+          variant: "destructive",
+        });
         navigate("/");
         return;
       }
 
-      navigate("/generating");
+      try {
+        const { data, error } = await supabase.functions.invoke('getprofessors', {
+          body: {
+            fieldOfInterest,
+            numberOfProfessors: 5
+          }
+        });
+
+        if (error) {
+          console.error('Edge function error:', error);
+          toast({
+            title: "Error",
+            description: "Failed to generate professors list. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (data) {
+          localStorage.setItem('professors', JSON.stringify(data));
+          navigate("/generating");
+        }
+      } catch (error) {
+        console.error('Error calling edge function:', error);
+        toast({
+          title: "Error",
+          description: "Something went wrong. Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsGenerating(false);
+      }
     } else {
-      toast.info("Coming soon! Only Basic plan is available now.");
+      toast({
+        description: "Coming soon! Only Basic plan is available now.",
+      });
     }
   };
 
