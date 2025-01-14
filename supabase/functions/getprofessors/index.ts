@@ -18,6 +18,7 @@ serve(async (req) => {
 
   try {
     const { fieldOfInterest } = await req.json();
+    console.log('Received field of interest:', fieldOfInterest);
     
     if (!fieldOfInterest) {
       throw new Error('Field of interest is required');
@@ -43,7 +44,25 @@ serve(async (req) => {
       .single();
 
     const userActivities = activitiesData?.activities || '';
+    console.log('User activities:', userActivities);
 
+    const prompt = `Generate 5 professors who are experts in ${fieldOfInterest}. For each professor, provide:
+    1. Full name
+    2. Email (institutional email)
+    3. Current position
+    4. Institution name
+    5. Recent research contributions or areas of focus
+
+    Format the response as a JSON array where each object has these properties:
+    {
+      "name": "Full Name",
+      "email": "institutional.email@university.edu",
+      "position": "Current Position",
+      "institution": "University Name",
+      "recentWork": "Brief description of recent research"
+    }`;
+
+    console.log('Sending request to OpenAI...');
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -51,38 +70,45 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: `You are an expert academic researcher. Generate 5 promising researchers in ${fieldOfInterest} who would be excellent potential advisors.
-            Focus on early to mid-career professors doing innovative work at reputable institutions.
-            For each researcher, provide their full name, institutional email, current position, institution name, and recent research contributions.`
+            content: 'You are a helpful assistant that generates information about professors in specific academic fields. Always respond with valid JSON arrays containing professor information.'
           },
           {
             role: 'user',
-            content: `Generate 5 researchers in ${fieldOfInterest} with their details.`
+            content: prompt
           }
         ],
         temperature: 0.7,
-        max_tokens: 2000,
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      const errorData = await response.text();
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    
+    console.log('OpenAI response received');
+
     if (!data.choices?.[0]?.message?.content) {
-      throw new Error('Invalid response from OpenAI');
+      throw new Error('Invalid response format from OpenAI');
     }
 
-    const professors = JSON.parse(data.choices[0].message.content);
-    
+    let professors;
+    try {
+      professors = JSON.parse(data.choices[0].message.content);
+      console.log('Parsed professors data:', professors);
+    } catch (error) {
+      console.error('Error parsing OpenAI response:', error);
+      throw new Error('Failed to parse professor data from OpenAI response');
+    }
+
     if (!Array.isArray(professors)) {
-      throw new Error('Invalid response format from OpenAI');
+      throw new Error('Invalid response format: expected an array of professors');
     }
 
     const processedProfessors = professors.map(prof => ({
@@ -103,13 +129,18 @@ Best regards,
 [Your Name]`
     }));
 
+    console.log('Sending response with processed professors');
     return new Response(JSON.stringify(processedProfessors), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
     
   } catch (error) {
+    console.error('Error in getprofessors function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }), 
+      JSON.stringify({ 
+        error: error.message,
+        details: 'Please try again or contact support if the issue persists.'
+      }), 
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
