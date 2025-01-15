@@ -41,31 +41,24 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an expert academic researcher with deep knowledge of universities and research institutions worldwide. 
-            Your task is to identify 5 promising researchers in ${fieldOfInterest} who would be excellent potential advisors.
-            
-            Focus on:
-            1. Early to mid-career professors doing innovative work
-            2. Researchers at reputable institutions with active research programs
-            3. Scientists publishing significant work in ${fieldOfInterest} within the last 2-3 years
-            
-            For each researcher, provide:
-            - Full name with appropriate title (Dr./Prof.)
-            - Institutional email (use only real university domains)
-            - Current academic position
-            - Full institution name
-            - A detailed 2-3 sentence description of their recent, specific research contributions
-            
-            Return ONLY a JSON array of objects with these exact fields:
-            - name (string)
-            - email (string)
-            - position (string)
-            - institution (string)
-            - recentWork (string)`
+            content: `You are a helpful assistant that generates information about professors. 
+            Your response must be a valid JSON array containing exactly 5 professor objects.
+            Each object must have these exact fields and types:
+            {
+              "name": "string",
+              "email": "string",
+              "position": "string",
+              "institution": "string",
+              "recentWork": "string"
+            }
+            Do not include any additional text or formatting in your response, only the JSON array.`
+          },
+          {
+            role: 'user',
+            content: `Generate 5 professors in ${fieldOfInterest}. Return ONLY a JSON array.`
           }
         ],
         temperature: 0.7,
-        max_tokens: 2000,
       }),
     });
 
@@ -75,13 +68,12 @@ serve(async (req) => {
       const errorData = await response.text();
       console.error("OpenAI API error response:", errorData);
       
-      // Check for specific error types
       if (response.status === 401) {
-        throw new Error('Invalid OpenAI API key. Please check your API key.');
+        throw new Error('Invalid OpenAI API key');
       } else if (response.status === 429) {
-        throw new Error('OpenAI API rate limit exceeded or insufficient credits. Please check your OpenAI account.');
+        throw new Error('OpenAI API rate limit exceeded or insufficient credits');
       } else {
-        throw new Error(`OpenAI API error: ${response.status} - ${errorData}`);
+        throw new Error(`OpenAI API error: ${response.status}`);
       }
     }
 
@@ -93,12 +85,16 @@ serve(async (req) => {
       throw new Error('Invalid response format from OpenAI');
     }
 
-    let professors;
     try {
       const content = data.choices[0].message.content;
       console.log("Raw content from OpenAI:", content);
       
-      professors = typeof content === 'string' ? JSON.parse(content) : content;
+      // Ensure we're working with a string before parsing
+      const contentString = typeof content === 'string' ? content : JSON.stringify(content);
+      // Remove any potential whitespace or newlines before parsing
+      const cleanContent = contentString.trim();
+      
+      const professors = JSON.parse(cleanContent);
       
       if (!Array.isArray(professors)) {
         console.error("Response is not an array:", professors);
@@ -107,8 +103,8 @@ serve(async (req) => {
 
       console.log(`Successfully generated ${professors.length} professors`);
       
-      // Generate personalized emails for each professor
-      professors = professors.map(prof => ({
+      // Add email templates to professors
+      const professorsWithEmails = professors.map(prof => ({
         ...prof,
         generatedEmail: `Dear ${prof.name},
 
@@ -124,11 +120,12 @@ Best regards,
 [Your name]`
       }));
 
-      return new Response(JSON.stringify(professors), {
+      return new Response(JSON.stringify(professorsWithEmails), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);
+      console.error('Failed content:', data.choices[0].message.content);
       throw new Error('Failed to parse researcher data from OpenAI response');
     }
   } catch (error: any) {
