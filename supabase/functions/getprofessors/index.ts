@@ -42,20 +42,20 @@ serve(async (req) => {
           {
             role: 'system',
             content: `You are a helpful assistant that generates information about professors. 
-            Your response must be a valid JSON array containing exactly 5 professor objects.
-            Each object must have these exact fields and types:
+            Generate a JSON array containing exactly 5 professor objects.
+            Do not include any markdown formatting, backticks, or additional text.
+            Return only the raw JSON array with these exact fields:
             {
               "name": "string",
               "email": "string",
               "position": "string",
               "institution": "string",
               "recentWork": "string"
-            }
-            Do not include any additional text or formatting in your response, only the JSON array.`
+            }`
           },
           {
             role: 'user',
-            content: `Generate 5 professors in ${fieldOfInterest}. Return ONLY a JSON array.`
+            content: `Generate 5 professors in ${fieldOfInterest}. Return only a raw JSON array, no markdown or formatting.`
           }
         ],
         temperature: 0.7,
@@ -89,10 +89,13 @@ serve(async (req) => {
       const content = data.choices[0].message.content;
       console.log("Raw content from OpenAI:", content);
       
-      // Ensure we're working with a string before parsing
-      const contentString = typeof content === 'string' ? content : JSON.stringify(content);
-      // Remove any potential whitespace or newlines before parsing
-      const cleanContent = contentString.trim();
+      // Clean the content by removing any markdown formatting
+      let cleanContent = content
+        .replace(/```json\s*/g, '') // Remove ```json
+        .replace(/```\s*/g, '')     // Remove remaining ```
+        .trim();                    // Remove whitespace
+      
+      console.log("Cleaned content before parsing:", cleanContent);
       
       const professors = JSON.parse(cleanContent);
       
