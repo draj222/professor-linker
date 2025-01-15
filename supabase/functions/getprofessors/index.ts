@@ -9,6 +9,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -68,9 +69,11 @@ serve(async (req) => {
       }),
     });
 
+    console.log("Received response from OpenAI with status:", response.status);
+
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error response:', errorData);
+      console.error("OpenAI API error response:", errorData);
       
       // Check for specific error types
       if (response.status === 401) {
@@ -83,7 +86,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log("Received response from OpenAI");
+    console.log("Received response from OpenAI:", JSON.stringify(data, null, 2));
 
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       console.error("Invalid response format from OpenAI:", data);
@@ -93,6 +96,8 @@ serve(async (req) => {
     let professors;
     try {
       const content = data.choices[0].message.content;
+      console.log("Raw content from OpenAI:", content);
+      
       professors = typeof content === 'string' ? JSON.parse(content) : content;
       
       if (!Array.isArray(professors)) {
@@ -119,16 +124,14 @@ Best regards,
 [Your name]`
       }));
 
+      return new Response(JSON.stringify(professors), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);
       throw new Error('Failed to parse researcher data from OpenAI response');
     }
-
-    return new Response(JSON.stringify(professors), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-    
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in getprofessors function:', error);
     return new Response(
       JSON.stringify({ 
