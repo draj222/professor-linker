@@ -9,7 +9,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -41,28 +40,25 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a helpful assistant that generates information about professors. 
-            Generate a JSON array containing exactly 5 professor objects.
-            Do not include any markdown formatting, backticks, or additional text.
-            Return only the raw JSON array with these exact fields:
-            {
-              "name": "string",
-              "email": "string",
-              "position": "string",
-              "institution": "string",
-              "recentWork": "string"
-            }`
+            content: `You are an AI that generates professor information.
+            Return ONLY a raw JSON array of 5 professor objects.
+            NO markdown, NO backticks, NO additional text.
+            Each object must have these exact fields:
+            - name (string)
+            - email (string)
+            - position (string)
+            - institution (string)
+            - recentWork (string)
+            Example format: [{"name": "Dr. Smith",...}]`
           },
           {
             role: 'user',
-            content: `Generate 5 professors in ${fieldOfInterest}. Return only a raw JSON array, no markdown or formatting.`
+            content: `Generate 5 professors in ${fieldOfInterest}. Return ONLY the JSON array.`
           }
         ],
         temperature: 0.7,
       }),
     });
-
-    console.log("Received response from OpenAI with status:", response.status);
 
     if (!response.ok) {
       const errorData = await response.text();
@@ -80,36 +76,38 @@ serve(async (req) => {
     const data = await response.json();
     console.log("Received response from OpenAI:", JSON.stringify(data, null, 2));
 
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    if (!data.choices?.[0]?.message?.content) {
       console.error("Invalid response format from OpenAI:", data);
       throw new Error('Invalid response format from OpenAI');
     }
 
+    let content = data.choices[0].message.content;
+    console.log("Raw content from OpenAI:", content);
+
+    // Clean the content more aggressively
+    content = content
+      .replace(/```json\s*/g, '')  // Remove ```json
+      .replace(/```\s*/g, '')      // Remove remaining ```
+      .replace(/^\s*\[\s*/, '[')   // Clean start of array
+      .replace(/\s*\]\s*$/, ']')   // Clean end of array
+      .trim();
+
+    console.log("Cleaned content:", content);
+
     try {
-      const content = data.choices[0].message.content;
-      console.log("Raw content from OpenAI:", content);
-      
-      // Clean the content by removing any markdown formatting
-      let cleanContent = content
-        .replace(/```json\s*/g, '') // Remove ```json
-        .replace(/```\s*/g, '')     // Remove remaining ```
-        .trim();                    // Remove whitespace
-      
-      console.log("Cleaned content before parsing:", cleanContent);
-      
-      const professors = JSON.parse(cleanContent);
+      const professors = JSON.parse(content);
       
       if (!Array.isArray(professors)) {
         console.error("Response is not an array:", professors);
         throw new Error('Invalid response format: not an array');
       }
 
-      console.log(`Successfully generated ${professors.length} professors`);
+      console.log(`Successfully parsed ${professors.length} professors`);
       
       // Add email templates to professors
       const professorsWithEmails = professors.map(prof => ({
         ...prof,
-        generatedEmail: `Dear ${prof.name},
+        generatedEmail: `Dear Dr. ${prof.name},
 
 I hope this email finds you well. I am writing to express my sincere interest in your research work, particularly your recent contributions to ${prof.recentWork}. Your innovative approach and findings in this area align perfectly with my academic interests and career goals.
 
@@ -126,10 +124,11 @@ Best regards,
       return new Response(JSON.stringify(professorsWithEmails), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+
     } catch (error) {
       console.error('Error parsing OpenAI response:', error);
-      console.error('Failed content:', data.choices[0].message.content);
-      throw new Error('Failed to parse researcher data from OpenAI response');
+      console.error('Content that failed to parse:', content);
+      throw new Error(`Error parsing OpenAI response: ${error.message}`);
     }
   } catch (error: any) {
     console.error('Error in getprofessors function:', error);
