@@ -36,7 +36,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -55,27 +55,31 @@ serve(async (req) => {
             - Full institution name
             - A detailed 2-3 sentence description of their recent, specific research contributions
             
-            Ensure all information is current and verifiable. Return ONLY a JSON array of objects with these exact fields:
+            Return ONLY a JSON array of objects with these exact fields:
             - name (string)
             - email (string)
             - position (string)
             - institution (string)
-            - recentWork (string)
-            
-            Make the recentWork field specific and technical, mentioning actual research topics and findings.`
+            - recentWork (string)`
           }
         ],
         temperature: 0.7,
         max_tokens: 2000,
-        presence_penalty: 0.1,
-        frequency_penalty: 0.1
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      console.error('OpenAI API error response:', errorData);
+      
+      // Check for specific error types
+      if (response.status === 401) {
+        throw new Error('Invalid OpenAI API key. Please check your API key.');
+      } else if (response.status === 429) {
+        throw new Error('OpenAI API rate limit exceeded or insufficient credits. Please check your OpenAI account.');
+      } else {
+        throw new Error(`OpenAI API error: ${response.status} - ${errorData}`);
+      }
     }
 
     const data = await response.json();
@@ -129,7 +133,7 @@ Best regards,
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: 'Failed to generate professors. Please try again.'
+        details: 'Failed to generate professors. Please check the logs for more information.'
       }), 
       {
         status: 500,
