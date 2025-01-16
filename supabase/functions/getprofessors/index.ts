@@ -14,20 +14,17 @@ serve(async (req) => {
   }
 
   try {
-    console.log("Starting professor generation request");
-    const { fieldOfInterest } = await req.json();
+    const { fieldOfInterest, numberOfProfessors = 5 } = await req.json();
     
+    console.log(`Generating ${numberOfProfessors} professors for field: ${fieldOfInterest}`);
+
     if (!fieldOfInterest) {
-      console.error("No field of interest provided");
       throw new Error('Field of interest is required');
     }
 
     if (!openAIApiKey) {
-      console.error("OpenAI API key not configured");
       throw new Error('OpenAI API key is not configured');
     }
-
-    console.log(`Generating professors for field: ${fieldOfInterest}`);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -41,7 +38,7 @@ serve(async (req) => {
           {
             role: 'system',
             content: `You are an AI that generates professor information.
-            Return ONLY a raw JSON array of 5 professor objects.
+            Return ONLY a raw JSON array of ${numberOfProfessors} professor objects.
             NO markdown, NO backticks, NO additional text.
             Each object must have these exact fields:
             - name (string)
@@ -53,7 +50,7 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: `Generate 5 professors in ${fieldOfInterest}. Return ONLY the JSON array.`
+            content: `Generate ${numberOfProfessors} professors in ${fieldOfInterest}. Return ONLY the JSON array.`
           }
         ],
         temperature: 0.7,
