@@ -43,8 +43,8 @@ const PricingPage = () => {
         setIsGenerating(true);
         console.log("Starting professor generation for field:", fieldOfInterest);
         
-        // Navigate to results page first to let user select email count
-        navigate("/results");
+        // Navigate to loading page first
+        navigate("/loading");
 
       } catch (error) {
         console.error('Error in pricing flow:', error);

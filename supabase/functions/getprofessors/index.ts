@@ -14,17 +14,20 @@ serve(async (req) => {
   }
 
   try {
-    const { fieldOfInterest, numberOfProfessors = 5 } = await req.json();
+    console.log("Starting professor generation request");
+    const { fieldOfInterest } = await req.json();
     
-    console.log(`Generating ${numberOfProfessors} professors for field: ${fieldOfInterest}`);
-
     if (!fieldOfInterest) {
+      console.error("No field of interest provided");
       throw new Error('Field of interest is required');
     }
 
     if (!openAIApiKey) {
+      console.error("OpenAI API key not configured");
       throw new Error('OpenAI API key is not configured');
     }
+
+    console.log(`Generating professors for field: ${fieldOfInterest}`);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -38,8 +41,7 @@ serve(async (req) => {
           {
             role: 'system',
             content: `You are an AI that generates professor information.
-            Generate EXACTLY ${numberOfProfessors} professors, no more, no less.
-            Return ONLY a raw JSON array of professor objects.
+            Return ONLY a raw JSON array of 5 professor objects.
             NO markdown, NO backticks, NO additional text.
             Each object must have these exact fields:
             - name (string)
@@ -47,12 +49,11 @@ serve(async (req) => {
             - position (string)
             - institution (string)
             - recentWork (string)
-            Example format: [{"name": "Dr. Smith",...}]
-            The array MUST contain exactly ${numberOfProfessors} items.`
+            Example format: [{"name": "Dr. Smith",...}]`
           },
           {
             role: 'user',
-            content: `Generate exactly ${numberOfProfessors} professors in ${fieldOfInterest}. Return ONLY the JSON array.`
+            content: `Generate 5 professors in ${fieldOfInterest}. Return ONLY the JSON array.`
           }
         ],
         temperature: 0.7,
@@ -85,10 +86,10 @@ serve(async (req) => {
 
     // Clean the content more aggressively
     content = content
-      .replace(/```json\s*/g, '')
-      .replace(/```\s*/g, '')
-      .replace(/^\s*\[\s*/, '[')
-      .replace(/\s*\]\s*$/, ']')
+      .replace(/```json\s*/g, '')  // Remove ```json
+      .replace(/```\s*/g, '')      // Remove remaining ```
+      .replace(/^\s*\[\s*/, '[')   // Clean start of array
+      .replace(/\s*\]\s*$/, ']')   // Clean end of array
       .trim();
 
     console.log("Cleaned content:", content);
@@ -99,11 +100,6 @@ serve(async (req) => {
       if (!Array.isArray(professors)) {
         console.error("Response is not an array:", professors);
         throw new Error('Invalid response format: not an array');
-      }
-
-      if (professors.length !== numberOfProfessors) {
-        console.error(`Expected ${numberOfProfessors} professors but got ${professors.length}`);
-        throw new Error(`Invalid number of professors generated`);
       }
 
       console.log(`Successfully parsed ${professors.length} professors`);
