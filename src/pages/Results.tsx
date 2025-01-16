@@ -14,19 +14,17 @@ const Results = () => {
   useEffect(() => {
     const storedResults = localStorage.getItem("generatedProfessors");
     if (storedResults) {
-      const allResults = JSON.parse(storedResults);
-      // Take only the number of results that matches the user's plan
+      const parsedResults = JSON.parse(storedResults);
+      console.log(`Loading ${parsedResults.length} professors from storage`);
+      setResults(parsedResults);
+      
       const userPlanEmails = localStorage.getItem("selectedEmailCount");
       if (userPlanEmails) {
         const count = parseInt(userPlanEmails);
         console.log(`Using user selected email count: ${count}`);
         setNumberOfEmails(count);
-        setResults(allResults.slice(0, count));
-        setShowResults(true);
-      } else {
-        console.log('No email count found in localStorage');
-        setResults(allResults);
       }
+      setShowResults(true);
     }
   }, []);
 
@@ -34,16 +32,10 @@ const Results = () => {
     const allResults = JSON.parse(localStorage.getItem("generatedProfessors") || "[]");
     console.log(`Generating ${numberOfEmails} emails from ${allResults.length} available professors`);
     
-    // Store the selected number of emails
     localStorage.setItem("selectedEmailCount", numberOfEmails.toString());
-    
-    // Take only the number of results that the user selected
-    const selectedResults = allResults.slice(0, numberOfEmails);
-    console.log(`Selected ${selectedResults.length} professors for email generation`);
-    
-    setResults(selectedResults);
+    setResults(allResults);
     setShowResults(true);
-    toast.success(`Generated ${selectedResults.length} personalized emails`);
+    toast.success(`Generated ${allResults.length} personalized emails`);
   };
 
   if (!showResults) {

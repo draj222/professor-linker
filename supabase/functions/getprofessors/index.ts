@@ -38,7 +38,8 @@ serve(async (req) => {
           {
             role: 'system',
             content: `You are an AI that generates professor information.
-            Return ONLY a raw JSON array of ${numberOfProfessors} professor objects.
+            Generate EXACTLY ${numberOfProfessors} professors, no more, no less.
+            Return ONLY a raw JSON array of professor objects.
             NO markdown, NO backticks, NO additional text.
             Each object must have these exact fields:
             - name (string)
@@ -46,11 +47,12 @@ serve(async (req) => {
             - position (string)
             - institution (string)
             - recentWork (string)
-            Example format: [{"name": "Dr. Smith",...}]`
+            Example format: [{"name": "Dr. Smith",...}]
+            The array MUST contain exactly ${numberOfProfessors} items.`
           },
           {
             role: 'user',
-            content: `Generate ${numberOfProfessors} professors in ${fieldOfInterest}. Return ONLY the JSON array.`
+            content: `Generate exactly ${numberOfProfessors} professors in ${fieldOfInterest}. Return ONLY the JSON array.`
           }
         ],
         temperature: 0.7,
@@ -83,10 +85,10 @@ serve(async (req) => {
 
     // Clean the content more aggressively
     content = content
-      .replace(/```json\s*/g, '')  // Remove ```json
-      .replace(/```\s*/g, '')      // Remove remaining ```
-      .replace(/^\s*\[\s*/, '[')   // Clean start of array
-      .replace(/\s*\]\s*$/, ']')   // Clean end of array
+      .replace(/```json\s*/g, '')
+      .replace(/```\s*/g, '')
+      .replace(/^\s*\[\s*/, '[')
+      .replace(/\s*\]\s*$/, ']')
       .trim();
 
     console.log("Cleaned content:", content);
@@ -97,6 +99,11 @@ serve(async (req) => {
       if (!Array.isArray(professors)) {
         console.error("Response is not an array:", professors);
         throw new Error('Invalid response format: not an array');
+      }
+
+      if (professors.length !== numberOfProfessors) {
+        console.error(`Expected ${numberOfProfessors} professors but got ${professors.length}`);
+        throw new Error(`Invalid number of professors generated`);
       }
 
       console.log(`Successfully parsed ${professors.length} professors`);
