@@ -62,15 +62,15 @@ export const AuthenticatedDashboard = ({ planInfo }: AuthenticatedDashboardProps
         id: "1",
         professorName: "Dr. Sarah Johnson",
         dueDate: "2024-03-20",
-        status: "pending",
-        type: "follow_up"
+        status: "pending" as const,
+        type: "follow_up" as const
       },
       {
         id: "2",
         professorName: "Dr. Michael Chen",
         dueDate: "2024-03-22",
-        status: "completed",
-        type: "initial_contact"
+        status: "completed" as const,
+        type: "initial_contact" as const
       }
     ],
     professors: [
