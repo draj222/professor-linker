@@ -41,9 +41,9 @@ const PricingPage = () => {
 
       try {
         setIsGenerating(true);
-        console.log("Starting professor generation for field:", fieldOfInterest);
+        console.log("Starting university matching for field:", fieldOfInterest);
         
-        // Navigate to loading page first
+        // Navigate to loading page first, which will then handle university matching
         navigate("/loading");
 
       } catch (error) {

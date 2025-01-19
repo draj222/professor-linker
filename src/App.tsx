@@ -11,6 +11,7 @@ import Pricing from "./pages/Pricing";
 import Results from "./pages/Results";
 import GeneratingResults from "./pages/GeneratingResults";
 import LoginPage from "./pages/LoginPage";
+import { UniversitySelector } from "./components/universities/UniversitySelector";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/loading" element={<Loading />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/universities" element={<UniversitySelector />} />
               <Route path="/generating" element={<GeneratingResults />} />
               <Route path="/results" element={<Results />} />
             </Routes>
