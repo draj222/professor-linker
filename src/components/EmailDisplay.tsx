@@ -29,12 +29,18 @@ const emailTemplates = [
     tone: "formal",
     template: `Dear Professor {name},
 
-I am writing to express my strong interest in pursuing a Ph.D. under your supervision at {institution}. Your work on {recentWork} particularly resonates with my research interests.
+I am writing to express my sincere interest in pursuing a Ph.D. under your supervision at {institution}. Your groundbreaking research on {recentWork} particularly resonates with my academic interests and career aspirations.
 
-I would greatly appreciate the opportunity to discuss potential Ph.D. positions in your research group.
+With my background in {fieldOfInterest} and {researchExperience}, I believe I can contribute meaningfully to your research group. During my {educationLevel} studies, I have developed strong analytical skills and research capabilities that align well with your work.
+
+{academicGoals}
+
+I would greatly appreciate the opportunity to discuss potential Ph.D. positions in your research group and how my background could contribute to your ongoing research initiatives.
+
+Thank you for considering my application.
 
 Best regards,
-[Your name]`
+{userName}`
   },
   { 
     id: "research", 
@@ -42,12 +48,18 @@ Best regards,
     tone: "professional",
     template: `Dear Professor {name},
 
-I recently read about your research on {recentWork} and am very interested in learning more about opportunities to contribute to your work at {institution}.
+I hope this email finds you well. I am writing to express my keen interest in your research at {institution}, particularly your work on {recentWork}.
 
-I would welcome the chance to discuss how my background aligns with your current research projects.
+As a {educationLevel} with experience in {researchExperience}, I am fascinated by the potential applications and implications of your research. My academic background in {fieldOfInterest} has equipped me with the foundational knowledge necessary to contribute to your research endeavors.
+
+{academicGoals}
+
+I would welcome the opportunity to discuss how my background and research interests align with your current projects and explore potential collaboration opportunities.
+
+Thank you for your time and consideration.
 
 Best regards,
-[Your name]`
+{userName}`
   },
   { 
     id: "internship", 
@@ -55,18 +67,31 @@ Best regards,
     tone: "enthusiastic",
     template: `Dear Professor {name},
 
-I am excited about the possibility of joining your research group at {institution} as an intern. Your recent work on {recentWork} perfectly aligns with my interests and career goals.
+I am writing to express my strong enthusiasm about the possibility of joining your research group at {institution} as an intern. Your innovative work on {recentWork} perfectly aligns with my academic interests and career aspirations.
 
-I would love to discuss potential internship opportunities in your lab.
+Currently a {educationLevel} focusing on {fieldOfInterest}, I have gained valuable experience through {researchExperience}. This background has prepared me well to contribute meaningfully to your research projects.
+
+{academicGoals}
+
+I would be thrilled to have the opportunity to discuss potential internship positions in your lab and how I could contribute to your ongoing research initiatives.
+
+Thank you for considering my request.
 
 Best regards,
-[Your name]`
+{userName}`
   },
 ];
 
 const generateEmailContent = (professor: Professor, template: string, tone: string) => {
   console.log('Generating email with tone:', tone);
   let content = template;
+  
+  // Get user information from localStorage
+  const userName = localStorage.getItem("userName") || "[Your name]";
+  const fieldOfInterest = localStorage.getItem("fieldOfInterest") || "relevant field";
+  const educationLevel = localStorage.getItem("educationLevel") || "student";
+  const researchExperience = localStorage.getItem("researchExperience") || "relevant research experience";
+  const academicGoals = localStorage.getItem("academicGoals") || "";
   
   // Apply tone-specific modifications
   switch (tone) {
@@ -87,7 +112,12 @@ const generateEmailContent = (professor: Professor, template: string, tone: stri
   return content
     .replace(/{name}/g, professor.name)
     .replace(/{institution}/g, professor.institution)
-    .replace(/{recentWork}/g, professor.recentWork);
+    .replace(/{recentWork}/g, professor.recentWork)
+    .replace(/{userName}/g, userName)
+    .replace(/{fieldOfInterest}/g, fieldOfInterest)
+    .replace(/{educationLevel}/g, educationLevel)
+    .replace(/{researchExperience}/g, researchExperience)
+    .replace(/{academicGoals}/g, academicGoals ? `\nMy academic goals include ${academicGoals}.\n` : '');
 };
 
 export const EmailDisplay = ({ professor, onCopy, onSend, isSending }: EmailDisplayProps) => {
