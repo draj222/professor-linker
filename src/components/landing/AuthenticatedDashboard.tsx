@@ -8,6 +8,9 @@ import { toast } from "sonner";
 import { AnalyticsSection } from "../dashboard/AnalyticsSection";
 import { RecommendationsSection } from "../dashboard/RecommendationsSection";
 import { ResearchUpdatesSection } from "../dashboard/ResearchUpdatesSection";
+import { DetailedMetricsSection } from "../dashboard/DetailedMetricsSection";
+import { OutreachSection } from "../dashboard/OutreachSection";
+import { SearchSection } from "../dashboard/SearchSection";
 
 interface AuthenticatedDashboardProps {
   planInfo: {
@@ -30,6 +33,62 @@ export const AuthenticatedDashboard = ({ planInfo }: AuthenticatedDashboardProps
     matchRates: [],
     recommendations: [],
     updates: [],
+    metrics: {
+      researchCompatibility: [
+        {
+          category: "Research Interests Alignment",
+          score: 85,
+          description: "Strong alignment with AI and Machine Learning focus"
+        },
+        {
+          category: "Publication Impact",
+          score: 92,
+          description: "High citation rates in relevant fields"
+        },
+        {
+          category: "Collaboration Potential",
+          score: 78,
+          description: "Active in collaborative research projects"
+        }
+      ],
+      academicSuccess: {
+        applications: 12,
+        acceptances: 5,
+        pending: 7
+      }
+    },
+    followUps: [
+      {
+        id: "1",
+        professorName: "Dr. Sarah Johnson",
+        dueDate: "2024-03-20",
+        status: "pending",
+        type: "follow_up"
+      },
+      {
+        id: "2",
+        professorName: "Dr. Michael Chen",
+        dueDate: "2024-03-22",
+        status: "completed",
+        type: "initial_contact"
+      }
+    ],
+    professors: [
+      {
+        id: "1",
+        name: "Dr. Sarah Johnson",
+        institution: "Stanford University",
+        department: "Computer Science",
+        isFavorite: true
+      },
+      {
+        id: "2",
+        name: "Dr. Michael Chen",
+        institution: "MIT",
+        department: "Artificial Intelligence",
+        isFavorite: false
+      }
+    ]
   });
 
   useEffect(() => {
@@ -104,6 +163,24 @@ export const AuthenticatedDashboard = ({ planInfo }: AuthenticatedDashboardProps
     fetchDashboardData();
   }, []);
 
+  const handleScheduleFollowUp = (professorId: string) => {
+    toast.success("Follow-up scheduled successfully");
+  };
+
+  const handleToggleFavorite = (professorId: string) => {
+    setDashboardData(prev => ({
+      ...prev,
+      professors: prev.professors.map(prof =>
+        prof.id === professorId ? { ...prof, isFavorite: !prof.isFavorite } : prof
+      )
+    }));
+    toast.success("Professor favorite status updated");
+  };
+
+  const handleViewProfile = (professorId: string) => {
+    navigate(`/professor/${professorId}`);
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -160,6 +237,20 @@ export const AuthenticatedDashboard = ({ planInfo }: AuthenticatedDashboardProps
           </CardContent>
         </Card>
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <DetailedMetricsSection metrics={dashboardData.metrics} />
+        <OutreachSection
+          followUps={dashboardData.followUps}
+          onScheduleFollowUp={handleScheduleFollowUp}
+        />
+      </div>
+
+      <SearchSection
+        professors={dashboardData.professors}
+        onToggleFavorite={handleToggleFavorite}
+        onViewProfile={handleViewProfile}
+      />
 
       <AnalyticsSection
         emailStats={dashboardData.emailStats}
