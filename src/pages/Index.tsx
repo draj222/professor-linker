@@ -12,6 +12,7 @@ import { CoreDashboard } from '@/components/dashboard/CoreDashboard';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const [user, setUser] = useState(null);
@@ -19,6 +20,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -31,6 +33,11 @@ const Index = () => {
         }
       } catch (error) {
         console.error('Error checking auth:', error);
+        toast({
+          title: "Error",
+          description: "Failed to check authentication status",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
@@ -43,11 +50,13 @@ const Index = () => {
       setUser(session?.user ?? null);
       if (session?.user) {
         await fetchUserPlan(session.user.id);
+      } else {
+        setPlanInfo(null);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [toast]);
 
   const fetchUserPlan = async (userId) => {
     try {
@@ -59,6 +68,11 @@ const Index = () => {
 
       if (error) {
         console.error('Error fetching plan:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch user plan",
+          variant: "destructive"
+        });
         return;
       }
 
@@ -66,6 +80,11 @@ const Index = () => {
       setPlanInfo(data);
     } catch (error) {
       console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
     }
   };
 
