@@ -1,101 +1,66 @@
-import { useEffect, useState } from "react";
-import { ResultsDisplay } from "@/components/ResultsDisplay";
-import { Navbar } from "@/components/Navbar";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { toast } from "sonner";
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { Navbar } from '@/components/Navbar';
+import { LayoutDashboard } from "lucide-react";
+import { Link } from 'react-router-dom';
 
 const Results = () => {
-  const [results, setResults] = useState([]);
-  const [numberOfEmails, setNumberOfEmails] = useState(10);
-  const [showResults, setShowResults] = useState(false);
+  const [professors, setProfessors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const storedResults = localStorage.getItem("generatedProfessors");
-    if (storedResults) {
-      const allResults = JSON.parse(storedResults);
-      // Take only the number of results that matches the user's plan
-      const userPlanEmails = localStorage.getItem("selectedEmailCount");
-      if (userPlanEmails) {
-        const count = parseInt(userPlanEmails);
-        console.log(`Using user selected email count: ${count}`);
-        setNumberOfEmails(count);
-        setResults(allResults.slice(0, count));
-        setShowResults(true);
+    const fetchProfessors = async () => {
+      const { data, error } = await supabase
+        .from('professors')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching professors:', error);
       } else {
-        console.log('No email count found in localStorage');
-        setResults(allResults);
+        setProfessors(data);
       }
-    }
+      setLoading(false);
+    };
+
+    fetchProfessors();
   }, []);
 
-  const handleGenerateEmails = () => {
-    const allResults = JSON.parse(localStorage.getItem("generatedProfessors") || "[]");
-    console.log(`Generating ${numberOfEmails} emails from ${allResults.length} available professors`);
-    
-    // Store the selected number of emails
-    localStorage.setItem("selectedEmailCount", numberOfEmails.toString());
-    
-    // Take only the number of results that the user selected
-    const selectedResults = allResults.slice(0, numberOfEmails);
-    console.log(`Selected ${selectedResults.length} professors for email generation`);
-    
-    setResults(selectedResults);
-    setShowResults(true);
-    toast.success(`Generated ${selectedResults.length} personalized emails`);
-  };
-
-  if (!showResults) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
         <Navbar />
-        <div className="max-w-7xl mx-auto pt-24 px-4">
-          <Card className="max-w-xl mx-auto p-8 bg-white/10 backdrop-blur-lg">
-            <h2 className="text-2xl font-bold text-white mb-6 text-center">
-              How many emails would you like to generate?
-            </h2>
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm text-gray-300">
-                  <span>1 email</span>
-                  <span>50 emails</span>
-                </div>
-                <Slider
-                  defaultValue={[numberOfEmails]}
-                  value={[numberOfEmails]}
-                  onValueChange={(value) => setNumberOfEmails(value[0])}
-                  max={50}
-                  min={1}
-                  step={1}
-                  className="my-4"
-                />
-                <div className="text-center text-xl text-blue-400 font-semibold">
-                  {numberOfEmails} email{numberOfEmails !== 1 ? 's' : ''}
-                </div>
-              </div>
-              <Button 
-                onClick={handleGenerateEmails}
-                className="w-full"
-                size="lg"
-              >
-                Generate Emails
-              </Button>
-            </div>
-          </Card>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-xl">Loading...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
       <Navbar />
-      <div className="max-w-7xl mx-auto pt-24 px-4">
-        <h1 className="text-4xl font-bold text-white text-center mb-8">
-          Generated Emails
-        </h1>
-        <ResultsDisplay results={results} />
+      <div className="container mx-auto px-4 py-20">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-white">Generated Professors</h1>
+          <Link 
+            to="/dashboard"
+            className="flex items-center space-x-2 text-white hover:text-blue-200 transition-colors"
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            <span>Go to Dashboard</span>
+          </Link>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {professors.map((professor) => (
+            <div key={professor.id} className="bg-white/10 backdrop-blur-lg border-gray-700 p-4 rounded-lg">
+              <h2 className="text-xl font-bold text-white">{professor.name}</h2>
+              <p className="text-gray-300">{professor.department}</p>
+              <p className="text-gray-300">{professor.email}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
