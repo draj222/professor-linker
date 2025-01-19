@@ -12,6 +12,7 @@ interface Professor {
   position: string;
   institution: string;
   recentWork: string;
+  generatedEmail: string;
 }
 
 const ProfessorLibrary = () => {
@@ -58,6 +59,7 @@ const ProfessorLibrary = () => {
         position: item.professors.department || 'Unknown Position',
         institution: 'Institution',
         recentWork: JSON.stringify(item.professors.recent_publications) || 'No recent work available',
+        generatedEmail: '' // Adding the required generatedEmail property with a default empty string
       }));
 
       setSavedProfessors(professors);
