@@ -64,6 +64,32 @@ Best regards,
   },
 ];
 
+const generateEmailContent = (professor: Professor, template: string, tone: string) => {
+  console.log('Generating email with tone:', tone);
+  let content = template;
+  
+  // Apply tone-specific modifications
+  switch (tone) {
+    case "formal":
+      content = content.replace(/I am/g, "I would like to");
+      content = content.replace(/love to/g, "appreciate the opportunity to");
+      break;
+    case "professional":
+      // Keep template as is - this is our baseline tone
+      break;
+    case "enthusiastic":
+      content = content.replace(/interested/g, "very excited");
+      content = content.replace(/would welcome/g, "would be thrilled to have");
+      break;
+  }
+
+  // Replace placeholders with actual values
+  return content
+    .replace(/{name}/g, professor.name)
+    .replace(/{institution}/g, professor.institution)
+    .replace(/{recentWork}/g, professor.recentWork);
+};
+
 export const EmailDisplay = ({ professor, onCopy, onSend, isSending }: EmailDisplayProps) => {
   const [selectedTemplate, setSelectedTemplate] = useState("research");
   const [emailTone, setEmailTone] = useState("professional");
@@ -74,21 +100,20 @@ export const EmailDisplay = ({ professor, onCopy, onSend, isSending }: EmailDisp
     if (professor) {
       const template = emailTemplates.find(t => t.id === selectedTemplate);
       if (template) {
-        const newContent = template.template
-          .replace(/{name}/g, professor.name)
-          .replace(/{institution}/g, professor.institution)
-          .replace(/{recentWork}/g, professor.recentWork);
+        const newContent = generateEmailContent(professor, template.template, emailTone);
         setEmailContent(newContent);
       }
     }
-  }, [professor, selectedTemplate]);
+  }, [professor, selectedTemplate, emailTone]);
 
   const handleTemplateChange = (value: string) => {
     setSelectedTemplate(value);
-    setEmailTone(emailTemplates.find(t => t.id === value)?.tone || "professional");
+    const template = emailTemplates.find(t => t.id === value);
+    setEmailTone(template?.tone || "professional");
   };
 
   const handleToneChange = (value: string) => {
+    console.log('Tone changed to:', value);
     setEmailTone(value);
     toast.success(`Email tone updated to ${value}`);
   };
@@ -97,12 +122,9 @@ export const EmailDisplay = ({ professor, onCopy, onSend, isSending }: EmailDisp
     if (professor) {
       const template = emailTemplates.find(t => t.id === selectedTemplate);
       if (template) {
-        const newContent = template.template
-          .replace(/{name}/g, professor.name)
-          .replace(/{institution}/g, professor.institution)
-          .replace(/{recentWork}/g, professor.recentWork);
+        const newContent = generateEmailContent(professor, template.template, emailTone);
         setEmailContent(newContent);
-        toast.success("Email regenerated with selected template");
+        toast.success("Email regenerated with selected template and tone");
       }
     }
   };
