@@ -8,7 +8,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const TIMEOUT_DURATION = 15000; // 15 seconds timeout
+const TIMEOUT_DURATION = 30000; // Increased to 30 seconds
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -27,13 +27,7 @@ serve(async (req) => {
     const count = parseInt(universityCount);
     console.log(`Generating ${count} universities for field: ${fieldOfInterest}, education level: ${educationLevel}`);
 
-    // Create a promise that rejects after the timeout
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timed out')), TIMEOUT_DURATION);
-    });
-
-    // Create the actual API request promise
-    const apiRequestPromise = fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
@@ -63,16 +57,9 @@ serve(async (req) => {
           }
         ],
         temperature: 0.7,
-        max_tokens: 2000, // Add a token limit to prevent very long responses
+        max_tokens: 3000, // Increased token limit
       }),
     });
-
-    // Race between the timeout and the API request
-    const response = await Promise.race([apiRequestPromise, timeoutPromise]);
-    
-    if (!response || !(response instanceof Response)) {
-      throw new Error('Request failed or timed out');
-    }
 
     if (!response.ok) {
       const errorData = await response.text();
@@ -125,7 +112,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: 'Failed to generate universities. Please try again.'
+        details: error.message || 'Failed to generate universities. Please try again.'
       }), 
       {
         status: 500,
