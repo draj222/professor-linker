@@ -25,10 +25,6 @@ serve(async (req) => {
     const count = parseInt(universityCount);
     console.log(`Generating ${count} universities for field: ${fieldOfInterest}, education level: ${educationLevel}`);
 
-    // Simplified prompt for faster generation
-    const systemPrompt = `You are a university matching expert. Generate exactly ${count} universities that excel in ${fieldOfInterest}${educationLevel ? ` for ${educationLevel} students` : ''}.
-    Return ONLY a JSON array with these fields: id (uuid v4), name (string), country (string), ranking (number, optional), academic_focus (string array), research_funding_level (string: 'high'/'medium'/'low')`;
-
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -40,7 +36,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: systemPrompt
+            content: `Generate exactly ${count} universities that excel in ${fieldOfInterest}${educationLevel ? ` for ${educationLevel} students` : ''}. Return a JSON array with objects containing: name (string), country (string), ranking (optional number), academic_focus (string array), research_funding_level (string: 'high'/'medium'/'low').`
           }
         ],
         temperature: 0.7,
@@ -56,7 +52,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log("Received response from OpenAI");
+    console.log("Raw OpenAI response:", data);
 
     if (!data.choices?.[0]?.message?.content) {
       console.error("Invalid response format from OpenAI:", data);
@@ -66,28 +62,31 @@ serve(async (req) => {
     let universities;
     try {
       const content = data.choices[0].message.content;
-      console.log("Raw content:", content);
+      console.log("Parsing content:", content);
       
+      // Parse the content and handle both array and object formats
       universities = typeof content === 'string' 
-        ? JSON.parse(content)
+        ? JSON.parse(content) 
         : content;
-      
+
+      // If the response is wrapped in an object, extract the array
       if (!Array.isArray(universities) && universities.universities) {
         universities = universities.universities;
       }
 
       if (!Array.isArray(universities)) {
+        console.error("Parsed content is not an array:", universities);
         throw new Error('Response is not an array');
       }
 
+      // Add IDs and ensure consistent format
       universities = universities.map(uni => ({
-        id: uni.id || crypto.randomUUID(),
+        id: crypto.randomUUID(),
         name: uni.name,
         country: uni.country,
         ranking: uni.ranking || null,
         academic_focus: Array.isArray(uni.academic_focus) ? uni.academic_focus : [fieldOfInterest],
-        research_funding_level: uni.research_funding_level || 'medium',
-        matchScore: Math.floor(Math.random() * 30) + 70
+        research_funding_level: uni.research_funding_level || 'medium'
       }));
 
       console.log(`Successfully processed ${universities.length} universities`);
