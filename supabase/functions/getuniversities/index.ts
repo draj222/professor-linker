@@ -71,8 +71,7 @@ serve(async (req) => {
             ]`
           }
         ],
-        temperature: 0.7,
-        response_format: { type: "json_object" }
+        temperature: 0.7
       }),
     });
 
@@ -107,10 +106,10 @@ serve(async (req) => {
       const content = data.choices[0].message.content;
       console.log("🔍 Parsing content:", content);
       
-      universities = typeof content === 'string' 
-        ? JSON.parse(content) 
-        : content;
+      // Handle both string and parsed JSON responses
+      universities = typeof content === 'string' ? JSON.parse(content) : content;
 
+      // If the response is wrapped in a universities property, extract it
       if (!Array.isArray(universities) && universities.universities) {
         universities = universities.universities;
       }
@@ -121,11 +120,16 @@ serve(async (req) => {
       }
 
       // Validate and clean up each university object
-      universities = universities.map(uni => {
+      universities = universities.map((uni, index) => {
+        console.log(`🏛️ Processing university ${index + 1}:`, uni);
+        
         if (!uni.name || !uni.country) {
           console.error("❌ Missing required fields for university:", uni);
           throw new Error('Missing required fields in university data');
         }
+
+        // Calculate a more meaningful match score based on various factors
+        const matchScore = calculateMatchScore(uni, fieldOfInterest);
 
         return {
           id: crypto.randomUUID(),
@@ -136,7 +140,7 @@ serve(async (req) => {
           research_funding_level: ['high', 'medium', 'low'].includes(uni.research_funding_level?.toLowerCase()) 
             ? uni.research_funding_level.toLowerCase() 
             : 'medium',
-          matchScore: Math.floor(Math.random() * 30) + 70 // Random score between 70-100 for now
+          matchScore
         };
       });
 
@@ -145,6 +149,7 @@ serve(async (req) => {
 
     } catch (parseError) {
       console.error('❌ Error parsing OpenAI response:', parseError);
+      console.error('Content that failed to parse:', data.choices[0].message.content);
       throw new Error(`Failed to parse universities: ${parseError.message}`);
     }
 
@@ -157,7 +162,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: 'Failed to generate universities. Please try again.'
+        details: 'Failed to generate universities. Please check the logs for more information.'
       }), 
       {
         status: 500,
@@ -166,3 +171,30 @@ serve(async (req) => {
     );
   }
 });
+
+// Helper function to calculate match score based on various factors
+function calculateMatchScore(university: any, fieldOfInterest: string): number {
+  let score = 70; // Base score
+
+  // Boost score based on ranking
+  if (university.ranking) {
+    if (university.ranking <= 10) score += 15;
+    else if (university.ranking <= 50) score += 10;
+    else if (university.ranking <= 100) score += 5;
+  }
+
+  // Boost score based on research funding
+  if (university.research_funding_level?.toLowerCase() === 'high') score += 10;
+  else if (university.research_funding_level?.toLowerCase() === 'medium') score += 5;
+
+  // Boost score based on academic focus match
+  if (Array.isArray(university.academic_focus)) {
+    const focusMatch = university.academic_focus.some(
+      (focus: string) => focus.toLowerCase().includes(fieldOfInterest.toLowerCase())
+    );
+    if (focusMatch) score += 5;
+  }
+
+  // Ensure score stays within 0-100 range
+  return Math.min(100, Math.max(0, score));
+}
