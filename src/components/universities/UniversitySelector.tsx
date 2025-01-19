@@ -4,7 +4,7 @@ import { UniversityList } from "./UniversityList";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -16,58 +16,70 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
   const [universities, setUniversities] = useState([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const generateUniversities = async () => {
-      const fieldOfInterest = localStorage.getItem("fieldOfInterest");
-      const educationLevel = localStorage.getItem("educationLevel");
-      const universityCount = localStorage.getItem("universityCount") || "6";
+  const generateUniversities = async () => {
+    setIsLoading(true);
+    setUniversities([]); // Clear existing universities
+    
+    const fieldOfInterest = localStorage.getItem("fieldOfInterest");
+    const educationLevel = localStorage.getItem("educationLevel");
+    const universityCount = localStorage.getItem("universityCount") || "6";
+    
+    if (!fieldOfInterest) {
+      toast({
+        title: "Missing Information",
+        description: "Please complete your profile first",
+        variant: "destructive",
+      });
+      navigate('/');
+      return;
+    }
+
+    try {
+      console.log("Generating universities with field:", fieldOfInterest, "Attempt:", retryCount + 1);
+      const { data, error } = await supabase.functions.invoke('getuniversities', {
+        body: { 
+          fieldOfInterest,
+          educationLevel,
+          universityCount
+        }
+      });
+
+      if (error) throw error;
+
+      if (!data || !Array.isArray(data)) {
+        throw new Error('Invalid response format from server');
+      }
+
+      console.log("Generated universities:", data);
+      setUniversities(data);
       
-      if (!fieldOfInterest) {
-        toast({
-          title: "Missing Information",
-          description: "Please complete your profile first",
-          variant: "destructive",
-        });
-        navigate('/');
-        return;
-      }
+      toast({
+        title: "Universities Found!",
+        description: `Found ${data.length} universities matching your interests`,
+      });
+    } catch (error) {
+      console.error("Error generating universities:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate university suggestions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      try {
-        console.log("Generating universities with field:", fieldOfInterest);
-        const { data, error } = await supabase.functions.invoke('getuniversities', {
-          body: { 
-            fieldOfInterest,
-            educationLevel,
-            universityCount
-          }
-        });
-
-        if (error) throw error;
-
-        console.log("Generated universities:", data);
-        setUniversities(data);
-        
-        toast({
-          title: "Universities Found!",
-          description: `Found ${data.length} universities matching your interests`,
-        });
-      } catch (error) {
-        console.error("Error generating universities:", error);
-        toast({
-          title: "Error",
-          description: "Failed to generate university suggestions. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
+  useEffect(() => {
     generateUniversities();
-  }, [toast, navigate]);
+  }, [retryCount]); // Depend on retryCount to trigger regeneration
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1); // This will trigger the useEffect
+  };
 
   const handleComplete = async () => {
     if (favorites.length === 0) {
@@ -80,7 +92,6 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     }
     
     try {
-      // Save favorites to user's account if they're logged in
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         for (const universityId of favorites) {
@@ -124,13 +135,26 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-pink-500/30 blur-3xl -z-10" />
         <Card className="p-6 bg-white/5 backdrop-blur-lg border border-white/10">
-          <h2 className="text-2xl font-semibold mb-2 flex items-center gap-2 text-foreground">
-            <Sparkles className="h-6 w-6 text-[#9b87f5]" />
-            Suggested Universities
-          </h2>
-          <p className="text-muted-foreground">
-            Based on your academic interests and goals, we've found these universities that might be a great fit.
-          </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-semibold mb-2 flex items-center gap-2 text-foreground">
+                <Sparkles className="h-6 w-6 text-[#9b87f5]" />
+                Suggested Universities
+              </h2>
+              <p className="text-muted-foreground">
+                Based on your academic interests and goals, we've found these universities that might be a great fit.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={handleRetry}
+              className="flex items-center gap-2 hover:bg-white/10"
+              disabled={isLoading}
+            >
+              <RefreshCw className="h-4 w-4" />
+              Regenerate
+            </Button>
+          </div>
         </Card>
       </div>
 
