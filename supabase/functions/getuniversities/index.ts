@@ -29,6 +29,30 @@ serve(async (req) => {
 
     console.log(`📚 Generating ${universityCount} universities for field: ${fieldOfInterest}`);
 
+    const systemPrompt = `You are a university recommendation system specializing in academic program matching. 
+    Generate ${universityCount} real, well-known universities that have strong programs in ${fieldOfInterest}${educationLevel ? ` at the ${educationLevel} level` : ''}.
+    Focus on universities known for research and academic excellence in this field.
+    
+    Format requirements:
+    - Return a valid JSON array
+    - Each university must be real and existing
+    - Include exact fields: id (UUID), name, country, ranking (1-1000), academic_focus (array), research_funding_level (high/medium/low)
+    - Ensure accurate academic focus areas
+    - Use realistic rankings based on global university rankings
+    - Be specific about research funding levels based on known university resources
+    
+    Example format:
+    [
+      {
+        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "name": "Stanford University",
+        "country": "USA",
+        "ranking": 2,
+        "academic_focus": ["Computer Science", "Artificial Intelligence"],
+        "research_funding_level": "high"
+      }
+    ]`;
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -40,20 +64,11 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a university recommendation system. Generate ${universityCount} real universities that excel in ${fieldOfInterest}${educationLevel ? ` for ${educationLevel} students` : ''}.
-            Return ONLY a JSON array of university objects.
-            Each object MUST have these exact fields:
-            - id (string, UUID format)
-            - name (string)
-            - country (string)
-            - ranking (number between 1-1000)
-            - academic_focus (array of strings)
-            - research_funding_level (string: 'high'/'medium'/'low')
-            Example: [{"id": "uuid", "name": "MIT", "country": "USA", "ranking": 1, "academic_focus": ["Computer Science"], "research_funding_level": "high"}]`
+            content: systemPrompt
           },
           {
             role: 'user',
-            content: `Generate ${universityCount} universities specializing in ${fieldOfInterest}. Return ONLY the JSON array.`
+            content: `List ${universityCount} top universities for ${fieldOfInterest}. Return ONLY the JSON array.`
           }
         ],
         temperature: 0.7,
@@ -77,12 +92,18 @@ serve(async (req) => {
     let content = data.choices[0].message.content.trim();
     console.log("🔍 Processing content:", content);
 
-    // Clean the content
+    // Clean the content - remove any markdown formatting
     content = content
       .replace(/```json\s*|\s*```/g, '')
       .trim();
 
-    const universities = JSON.parse(content);
+    let universities;
+    try {
+      universities = JSON.parse(content);
+    } catch (error) {
+      console.error("❌ Failed to parse JSON:", error);
+      throw new Error('Failed to parse university data');
+    }
 
     if (!Array.isArray(universities)) {
       console.error("❌ Response is not an array:", universities);
