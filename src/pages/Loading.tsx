@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Sparkles } from "lucide-react";
 
 const Loading = () => {
   const navigate = useNavigate();
@@ -43,18 +44,15 @@ const Loading = () => {
         console.log("Successfully generated professors:", data);
         localStorage.setItem("generatedProfessors", JSON.stringify(data));
         
-        // Navigate to the generating results page
         navigate("/generating");
 
       } catch (error) {
         console.error("Error in professor generation:", error);
         toast.error("Failed to generate professors. Please try again.");
-        // Navigate back to the form page on error
         navigate("/");
       }
     };
 
-    // Start generation after a short delay to ensure loading animation is visible
     const timer = setTimeout(() => {
       generateProfessors();
     }, 1500);
@@ -63,16 +61,27 @@ const Loading = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-background/80 text-foreground">
-      <div className="text-center space-y-8">
-        <div className="relative w-32 h-32 mx-auto">
-          <div className="absolute inset-0 border-4 border-purple-500 rounded-full animate-spin"></div>
-          <div className="absolute inset-4 bg-purple-400 rounded-full animate-pulse"></div>
-        </div>
-        <div className="space-y-4">
-          <h2 className="text-3xl font-bold text-white">Loading Your Journey</h2>
-          <p className="text-xl text-purple-300">Preparing your academic adventure...</p>
-          <div className="text-gray-400 animate-pulse">Generating personalized recommendations</div>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-pink-500/30 blur-3xl -z-10" />
+        <div className="text-center space-y-8">
+          <div className="relative w-32 h-32 mx-auto">
+            <div className="absolute inset-0 border-4 border-primary rounded-full animate-spin" />
+            <div className="absolute inset-4 rounded-full">
+              <Sparkles className="w-16 h-16 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">
+              Loading Your Journey
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Preparing your academic adventure...
+            </p>
+            <div className="text-muted-foreground/80 animate-pulse">
+              Generating personalized recommendations
+            </div>
+          </div>
         </div>
       </div>
     </div>
