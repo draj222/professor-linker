@@ -11,14 +11,20 @@ const GeneratingResults = () => {
     const fetchProfessors = async () => {
       try {
         const fieldOfInterest = localStorage.getItem("fieldOfInterest");
+        const selectedEmailCount = localStorage.getItem("selectedEmailCount");
+        const numberOfProfessors = selectedEmailCount ? parseInt(selectedEmailCount) : 10;
+
         if (!fieldOfInterest) {
           throw new Error("No field of interest specified");
         }
         
-        console.log("Fetching professors for field:", fieldOfInterest);
+        console.log("Fetching professors for field:", fieldOfInterest, "count:", numberOfProfessors);
 
         const { data, error } = await supabase.functions.invoke("getprofessors", {
-          body: { fieldOfInterest },
+          body: { 
+            fieldOfInterest,
+            numberOfProfessors
+          }
         });
 
         if (error) {
