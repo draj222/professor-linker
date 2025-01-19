@@ -22,13 +22,23 @@ serve(async (req) => {
       throw new Error('Field of interest is required');
     }
 
-    if (!universities || !Array.isArray(universities) || universities.length === 0) {
-      console.error("No universities provided or invalid format", universities);
+    // Parse universities from localStorage if needed
+    let universityList = universities;
+    if (typeof universities === 'string') {
+      try {
+        universityList = JSON.parse(universities);
+      } catch (e) {
+        console.error("Failed to parse universities string:", e);
+      }
+    }
+
+    if (!Array.isArray(universityList) || universityList.length === 0) {
+      console.error("No universities provided or invalid format", universityList);
       throw new Error('At least one university is required and must be an array');
     }
 
     console.log(`Generating ${numberOfProfessors} professors for field: ${fieldOfInterest}`);
-    console.log("Using universities:", universities);
+    console.log("Using universities:", universityList);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -37,7 +47,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -51,14 +61,14 @@ serve(async (req) => {
             - institution (string, must be one from the provided list)
             - recentWork (string)
             Example format: [{"name": "Dr. Smith",...}]
-            Only generate professors from these universities: ${universities.map(u => u.name).join(', ')}
+            Only generate professors from these universities: ${universityList.map(u => u.name).join(', ')}
             Focus on professors who specialize in ${fieldOfInterest}.
             Make sure to generate realistic but not too common names.
             Ensure email addresses follow standard academic email formats.`
           },
           {
             role: 'user',
-            content: `Generate ${numberOfProfessors} professors in ${fieldOfInterest} who work at the following universities: ${universities.map(u => u.name).join(', ')}. Return ONLY the JSON array.`
+            content: `Generate ${numberOfProfessors} professors in ${fieldOfInterest} who work at the following universities: ${universityList.map(u => u.name).join(', ')}. Return ONLY the JSON array.`
           }
         ],
         temperature: 0.7,
