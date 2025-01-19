@@ -25,8 +25,8 @@ serve(async (req) => {
     const count = parseInt(universityCount);
     console.log(`Generating ${count} universities for field: ${fieldOfInterest}, education level: ${educationLevel}`);
 
-    // Simplified and more focused prompt for faster generation
-    const systemPrompt = `Generate exactly ${count} universities that excel in ${fieldOfInterest}${educationLevel ? ` for ${educationLevel} students` : ''}.
+    // Simplified prompt for faster generation
+    const systemPrompt = `You are a university matching expert. Generate exactly ${count} universities that excel in ${fieldOfInterest}${educationLevel ? ` for ${educationLevel} students` : ''}.
     Return ONLY a JSON array with these fields: id (uuid v4), name (string), country (string), ranking (number, optional), academic_focus (string array), research_funding_level (string: 'high'/'medium'/'low')`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -36,7 +36,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', // Using the faster mini model
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -44,7 +44,7 @@ serve(async (req) => {
           }
         ],
         temperature: 0.7,
-        max_tokens: 1000, // Reduced for faster response
+        max_tokens: 800,
         response_format: { type: "json_object" }
       }),
     });
