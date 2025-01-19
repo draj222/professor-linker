@@ -15,15 +15,12 @@ interface UniversitySelectorProps {
 export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
   const [universities, setUniversities] = useState([]);
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const generateUniversities = async () => {
-    setIsLoading(true);
-    setUniversities([]); // Clear existing universities
-    
     const fieldOfInterest = localStorage.getItem("fieldOfInterest");
     const educationLevel = localStorage.getItem("educationLevel");
     const universityCount = localStorage.getItem("universityCount") || "6";
@@ -38,15 +35,25 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
       return;
     }
 
+    setIsLoading(true);
+    setUniversities([]); // Clear existing universities
+    
     try {
       console.log("Generating universities with field:", fieldOfInterest, "Attempt:", retryCount + 1);
-      const { data, error } = await supabase.functions.invoke('getuniversities', {
+      
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 30000); // 30 second timeout
+      });
+
+      const fetchPromise = supabase.functions.invoke('getuniversities', {
         body: { 
           fieldOfInterest,
           educationLevel,
           universityCount
         }
       });
+
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
       if (error) throw error;
 
@@ -55,6 +62,11 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
       }
 
       console.log("Generated universities:", data);
+      
+      if (data.length === 0) {
+        throw new Error('No universities were generated');
+      }
+
       setUniversities(data);
       
       toast({
@@ -63,22 +75,37 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
       });
     } catch (error) {
       console.error("Error generating universities:", error);
+      
+      let errorMessage = "Failed to generate university suggestions.";
+      if (error.message === 'Request timeout') {
+        errorMessage = "Request timed out. Please try again.";
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to generate university suggestions. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      // Reset loading state and clear universities on error
+      setUniversities([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    generateUniversities();
+    const initializeGeneration = async () => {
+      if (!isLoading) {
+        await generateUniversities();
+      }
+    };
+    
+    initializeGeneration();
   }, [retryCount]); // Depend on retryCount to trigger regeneration
 
   const handleRetry = () => {
-    setRetryCount(prev => prev + 1); // This will trigger the useEffect
+    setRetryCount(prev => prev + 1);
   };
 
   const handleComplete = async () => {
@@ -126,6 +153,13 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
         <p className="text-muted-foreground text-center max-w-md">
           We're analyzing universities worldwide to find the best matches for your academic interests
         </p>
+        <Button
+          variant="outline"
+          onClick={handleRetry}
+          className="mt-4"
+        >
+          Try Again
+        </Button>
       </div>
     );
   }
