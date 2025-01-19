@@ -18,6 +18,7 @@ serve(async (req) => {
 
   try {
     const { fieldOfInterest, educationLevel, researchExperience, academicGoals } = await req.json();
+    console.log('Received profile data:', { fieldOfInterest, educationLevel, researchExperience, academicGoals });
     
     if (!fieldOfInterest) {
       throw new Error('Field of interest is required');
@@ -31,7 +32,12 @@ serve(async (req) => {
       .from('universities')
       .select('*');
 
-    if (dbError) throw dbError;
+    if (dbError) {
+      console.error('Database error:', dbError);
+      throw dbError;
+    }
+
+    console.log(`Found ${universities?.length || 0} universities in database`);
 
     // Generate match scores using OpenAI
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -45,30 +51,30 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an AI that matches universities to student profiles.
-            Given a list of universities and a student profile, return a JSON array of university objects with match scores.
-            Each university should include:
-            - id (from input)
-            - name (from input)
-            - matchScore (0-100)
-            - matchReason (brief explanation)
-            Base the match on academic focus, research opportunities, and alignment with student goals.`
+            content: `You are a university matching expert. Your task is to analyze student profiles and match them with universities based on their academic interests, goals, and experience. Return matches as a JSON array where each match includes the university's id, name, matchScore (0-100), and a brief matchReason.`
           },
           {
             role: 'user',
             content: `Student Profile:
             - Field of Interest: ${fieldOfInterest}
-            - Education Level: ${educationLevel}
-            - Research Experience: ${researchExperience}
-            - Academic Goals: ${academicGoals}
+            - Education Level: ${educationLevel || 'Not specified'}
+            - Research Experience: ${researchExperience || 'None'}
+            - Academic Goals: ${academicGoals || 'Not specified'}
 
-            Universities to match:
-            ${JSON.stringify(universities)}
+            Available Universities:
+            ${JSON.stringify(universities, null, 2)}
 
-            Return ONLY a JSON array of matched universities with scores and reasons.`
+            Analyze this student's profile and match them with universities from the provided list.
+            For each university, provide:
+            1. The university's id and name (from the input data)
+            2. A match score (0-100) based on how well it fits the student's profile
+            3. A brief reason explaining why this university would be a good match
+
+            Return ONLY a JSON array of matches, each with these exact fields: id, name, matchScore, matchReason`
           }
         ],
         temperature: 0.7,
+        max_tokens: 2000,
       }),
     });
 
@@ -79,10 +85,42 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const matches = JSON.parse(data.choices[0].message.content);
+    console.log('OpenAI response:', data);
+
+    if (!data.choices?.[0]?.message?.content) {
+      throw new Error('Invalid response from OpenAI');
+    }
+
+    let matches;
+    try {
+      matches = JSON.parse(data.choices[0].message.content);
+      console.log('Parsed matches:', matches);
+    } catch (error) {
+      console.error('Error parsing OpenAI response:', error);
+      throw new Error('Failed to parse university matches');
+    }
+
+    // Validate matches structure
+    if (!Array.isArray(matches)) {
+      console.error('Matches is not an array:', matches);
+      throw new Error('Invalid matches format');
+    }
 
     // Filter out any matches with a score less than 20
-    const validMatches = matches.filter((match: any) => match.matchScore >= 20);
+    const validMatches = matches.filter((match: any) => {
+      const isValid = match && 
+        typeof match.id === 'string' && 
+        typeof match.name === 'string' && 
+        typeof match.matchScore === 'number' && 
+        match.matchScore >= 20;
+      
+      if (!isValid) {
+        console.log('Filtered out invalid match:', match);
+      }
+      return isValid;
+    });
+
+    console.log(`Returning ${validMatches.length} valid matches`);
 
     return new Response(JSON.stringify(validMatches), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
