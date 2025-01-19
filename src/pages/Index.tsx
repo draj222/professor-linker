@@ -9,7 +9,6 @@ import { FeatureCards } from '@/components/landing/FeatureCards';
 import { Testimonials } from '@/components/landing/Testimonials';
 import { NewsFeatures } from '@/components/landing/NewsFeatures';
 import { AuthenticatedDashboard } from '@/components/landing/AuthenticatedDashboard';
-import { UniversitySelector } from '@/components/universities/UniversitySelector';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
@@ -18,7 +17,6 @@ const Index = () => {
   const [user, setUser] = useState(null);
   const [planInfo, setPlanInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showUniversitySelector, setShowUniversitySelector] = useState(false);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
 
@@ -72,10 +70,7 @@ const Index = () => {
   };
 
   const handleProfileSubmit = () => {
-    setShowUniversitySelector(true);
-  };
-
-  const handleUniversitySelection = () => {
+    // Skip university selection and go straight to loading
     navigate('/loading');
   };
 
@@ -130,23 +125,11 @@ const Index = () => {
       <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
         <Navbar />
         <div className="container mx-auto px-4 py-20">
-          {!showUniversitySelector ? (
-            <>
-              <h1 className="text-4xl font-bold text-foreground mb-8 text-center">Tell Us About Your Interests</h1>
-              <p className="text-lg text-center text-muted-foreground mb-12">
-                Help us understand your academic interests so we can find the perfect professors for you.
-              </p>
-              <MultiStepForm onSubmit={handleProfileSubmit} />
-            </>
-          ) : (
-            <>
-              <h1 className="text-3xl font-bold text-foreground mb-8">Select Your Target Universities</h1>
-              <p className="text-lg text-muted-foreground mb-12">
-                Choose the universities you're interested in to help us find the most relevant professors.
-              </p>
-              <UniversitySelector onComplete={handleUniversitySelection} />
-            </>
-          )}
+          <h1 className="text-4xl font-bold text-foreground mb-8 text-center">Tell Us About Your Interests</h1>
+          <p className="text-lg text-center text-muted-foreground mb-12">
+            Help us understand your academic interests so we can find the perfect professors for you.
+          </p>
+          <MultiStepForm onSubmit={handleProfileSubmit} />
         </div>
       </div>
     );
