@@ -19,14 +19,11 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
   const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const isMounted = useRef(true);
 
-  // Cleanup function to abort any pending requests
+  // Cleanup function to check if component is mounted
   const cleanup = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
+    isMounted.current = false;
   }, []);
 
   const generateUniversities = useCallback(async () => {
@@ -44,12 +41,8 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
       return;
     }
 
-    // Cleanup any existing requests
-    cleanup();
-
-    // Create new abort controller for this request
-    abortControllerRef.current = new AbortController();
-
+    if (!isMounted.current) return;
+    
     setIsLoading(true);
     setUniversities([]); // Clear existing universities
     
@@ -65,17 +58,13 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
           fieldOfInterest,
           educationLevel,
           universityCount
-        },
-        signal: abortControllerRef.current.signal,
+        }
       });
 
       const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
-      // Check if the component was unmounted or a new request was started
-      if (abortControllerRef.current?.signal.aborted) {
-        console.log("Request was aborted");
-        return;
-      }
+      // Check if the component is still mounted
+      if (!isMounted.current) return;
 
       if (error) throw error;
 
@@ -89,15 +78,15 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
         throw new Error('No universities were generated');
       }
 
-      setUniversities(data);
-      
-      toast({
-        title: "Universities Found!",
-        description: `Found ${data.length} universities matching your interests`,
-      });
+      if (isMounted.current) {
+        setUniversities(data);
+        toast({
+          title: "Universities Found!",
+          description: `Found ${data.length} universities matching your interests`,
+        });
+      }
     } catch (error) {
-      // Only show error if the request wasn't aborted
-      if (!abortControllerRef.current?.signal.aborted) {
+      if (isMounted.current) {
         console.error("Error generating universities:", error);
         
         let errorMessage = "Failed to generate university suggestions.";
@@ -114,11 +103,11 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
         setUniversities([]);
       }
     } finally {
-      if (!abortControllerRef.current?.signal.aborted) {
+      if (isMounted.current) {
         setIsLoading(false);
       }
     }
-  }, [retryCount, toast, navigate, cleanup]);
+  }, [retryCount, toast, navigate]);
 
   useEffect(() => {
     const initializeGeneration = async () => {
