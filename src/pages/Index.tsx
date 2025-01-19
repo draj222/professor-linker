@@ -11,6 +11,7 @@ import { NewsFeatures } from '@/components/landing/NewsFeatures';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
+import { AuthenticatedDashboard } from '@/components/landing/AuthenticatedDashboard';
 
 const Index = () => {
   const [user, setUser] = useState(null);
@@ -65,6 +66,10 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const handleProfileSubmit = () => {
+    navigate('/pricing');
+  };
 
   if (loading) {
     return (
