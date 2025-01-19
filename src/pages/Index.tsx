@@ -9,6 +9,7 @@ import { FeatureCards } from '@/components/landing/FeatureCards';
 import { Testimonials } from '@/components/landing/Testimonials';
 import { NewsFeatures } from '@/components/landing/NewsFeatures';
 import { AuthenticatedDashboard } from '@/components/landing/AuthenticatedDashboard';
+import { UniversitySelector } from '@/components/universities/UniversitySelector';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
@@ -133,6 +134,10 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
       <Navbar />
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-foreground mb-8">Find Your Perfect University</h1>
+        <UniversitySelector />
+      </div>
       <AuthenticatedDashboard planInfo={planInfo} />
     </div>
   );

@@ -9,6 +9,77 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      email_templates: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          purpose: string | null
+          template: string
+          tone: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          purpose?: string | null
+          template: string
+          tone?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          purpose?: string | null
+          template?: string
+          tone?: string | null
+        }
+        Relationships: []
+      }
+      professors: {
+        Row: {
+          citation_metrics: Json | null
+          created_at: string
+          department: string | null
+          email: string
+          id: string
+          name: string
+          recent_publications: Json | null
+          research_interests: string[] | null
+          university_id: string | null
+        }
+        Insert: {
+          citation_metrics?: Json | null
+          created_at?: string
+          department?: string | null
+          email: string
+          id?: string
+          name: string
+          recent_publications?: Json | null
+          research_interests?: string[] | null
+          university_id?: string | null
+        }
+        Update: {
+          citation_metrics?: Json | null
+          created_at?: string
+          department?: string | null
+          email?: string
+          id?: string
+          name?: string
+          recent_publications?: Json | null
+          research_interests?: string[] | null
+          university_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professors_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -30,6 +101,86 @@ export type Database = {
           id?: string
           phone_number?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      sent_emails: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          professor_id: string | null
+          response_received_at: string | null
+          sent_at: string
+          status: string
+          subject: string
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          professor_id?: string | null
+          response_received_at?: string | null
+          sent_at?: string
+          status: string
+          subject: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          professor_id?: string | null
+          response_received_at?: string | null
+          sent_at?: string
+          status?: string
+          subject?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sent_emails_professor_id_fkey"
+            columns: ["professor_id"]
+            isOneToOne: false
+            referencedRelation: "professors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      universities: {
+        Row: {
+          academic_focus: string[] | null
+          country: string
+          created_at: string
+          faculty_size: number | null
+          id: string
+          name: string
+          ranking: number | null
+          region: string | null
+          research_funding_level: string | null
+        }
+        Insert: {
+          academic_focus?: string[] | null
+          country: string
+          created_at?: string
+          faculty_size?: number | null
+          id?: string
+          name: string
+          ranking?: number | null
+          region?: string | null
+          research_funding_level?: string | null
+        }
+        Update: {
+          academic_focus?: string[] | null
+          country?: string
+          created_at?: string
+          faculty_size?: number | null
+          id?: string
+          name?: string
+          ranking?: number | null
+          region?: string | null
+          research_funding_level?: string | null
         }
         Relationships: []
       }
@@ -56,6 +207,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_favorite_universities: {
+        Row: {
+          created_at: string
+          id: string
+          university_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          university_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          university_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorite_universities_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_plans: {
         Row: {
