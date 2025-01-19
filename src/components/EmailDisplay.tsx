@@ -142,8 +142,8 @@ export const EmailDisplay = ({ professor, onCopy, onSend, isSending }: EmailDisp
         <TabsContent value="preview" className="mt-4">
           <div className="prose prose-sm">
             <ScrollArea className="h-[320px] pr-4">
-              <div className="space-y-2">
-                <p><strong>To:</strong> {professor.email}</p>
+              <div className="space-y-2 font-mono"> {/* Added font-mono class for Courier New */}
+                <p><strong>To:</strong> {professor?.email}</p>
                 <p><strong>Subject:</strong> Research Opportunity Inquiry</p>
                 <div className="mt-4">
                   {emailContent.split('\n').map((paragraph, index) => (
@@ -156,7 +156,7 @@ export const EmailDisplay = ({ professor, onCopy, onSend, isSending }: EmailDisp
         </TabsContent>
         <TabsContent value="edit" className="mt-4">
           <textarea
-            className="w-full h-[320px] p-4 rounded-md bg-background border resize-none"
+            className="w-full h-[320px] p-4 rounded-md bg-background border resize-none font-mono" // Added font-mono class
             value={emailContent}
             onChange={(e) => setEmailContent(e.target.value)}
           />
