@@ -13,7 +13,7 @@ export const Login = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session);
       if (session) {
-        console.log('User logged in, redirecting to home');
+        console.log('User logged in, redirecting to dashboard');
         navigate('/', { replace: true });
       }
     });

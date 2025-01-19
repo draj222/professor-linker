@@ -18,6 +18,7 @@ const Index = () => {
   const [user, setUser] = useState(null);
   const [planInfo, setPlanInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showProfileForm, setShowProfileForm] = useState(false);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
@@ -89,7 +90,8 @@ const Index = () => {
   };
 
   const handleProfileSubmit = () => {
-    navigate('/loading');
+    setShowProfileForm(false);
+    navigate('/pricing');
   };
 
   if (loading) {
@@ -103,6 +105,7 @@ const Index = () => {
     );
   }
 
+  // If user is not authenticated, show landing page
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
@@ -138,7 +141,8 @@ const Index = () => {
     );
   }
 
-  if (!planInfo) {
+  // If user is authenticated but showing profile form
+  if (showProfileForm) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
         <Navbar />
@@ -153,10 +157,22 @@ const Index = () => {
     );
   }
 
+  // Show dashboard with option to complete profile if no plan
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
       <Navbar />
       <CoreDashboard />
+      {!planInfo && (
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+          <Button
+            size="lg"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg rounded-lg shadow-lg"
+            onClick={() => setShowProfileForm(true)}
+          >
+            Complete Your Profile
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
