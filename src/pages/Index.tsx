@@ -10,7 +10,6 @@ import { Testimonials } from '@/components/landing/Testimonials';
 import { NewsFeatures } from '@/components/landing/NewsFeatures';
 import { CoreDashboard } from '@/components/dashboard/CoreDashboard';
 import { Button } from '@/components/ui/button';
-import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -20,7 +19,6 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [showProfileForm, setShowProfileForm] = useState(false);
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -110,18 +108,6 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
         <Navigation />
-        <Button
-          variant="outline"
-          size="icon"
-          className="fixed top-4 right-4 z-50"
-          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-        >
-          {theme === "light" ? (
-            <Moon className="h-5 w-5" />
-          ) : (
-            <Sun className="h-5 w-5" />
-          )}
-        </Button>
         <div className="container mx-auto px-4 py-12 md:py-24">
           <HeroSection />
           <FeatureCards />
