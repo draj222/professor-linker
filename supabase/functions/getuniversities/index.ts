@@ -42,11 +42,36 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `Generate exactly ${count} universities that excel in ${fieldOfInterest}${educationLevel ? ` for ${educationLevel} students` : ''}. Return a JSON array with objects containing: name (string), country (string), ranking (optional number), academic_focus (string array), research_funding_level (string: 'high'/'medium'/'low').`
+            content: `You are a university recommendation expert. Generate exactly ${count} real, existing universities that excel in ${fieldOfInterest}${educationLevel ? ` for ${educationLevel} students` : ''}.
+            
+            Rules:
+            1. Only include real, existing universities
+            2. Focus on universities known for ${fieldOfInterest}
+            3. Include a mix of universities from different countries
+            4. Ensure accurate rankings (if provided)
+            5. Research funding levels must be 'high', 'medium', or 'low'
+            6. Academic focus must be an array of strings
+            
+            Return ONLY a JSON array with objects containing these exact fields:
+            - name (string, required)
+            - country (string, required)
+            - ranking (number, optional)
+            - academic_focus (string array, required)
+            - research_funding_level (string: 'high'/'medium'/'low', required)
+            
+            Example format:
+            [
+              {
+                "name": "Massachusetts Institute of Technology",
+                "country": "United States",
+                "ranking": 1,
+                "academic_focus": ["Computer Science", "Engineering", "Mathematics"],
+                "research_funding_level": "high"
+              }
+            ]`
           }
         ],
         temperature: 0.7,
-        max_tokens: 800,
         response_format: { type: "json_object" }
       }),
     });
@@ -95,14 +120,25 @@ serve(async (req) => {
         throw new Error('Response is not an array');
       }
 
-      universities = universities.map(uni => ({
-        id: crypto.randomUUID(),
-        name: uni.name,
-        country: uni.country,
-        ranking: uni.ranking || null,
-        academic_focus: Array.isArray(uni.academic_focus) ? uni.academic_focus : [fieldOfInterest],
-        research_funding_level: uni.research_funding_level || 'medium'
-      }));
+      // Validate and clean up each university object
+      universities = universities.map(uni => {
+        if (!uni.name || !uni.country) {
+          console.error("❌ Missing required fields for university:", uni);
+          throw new Error('Missing required fields in university data');
+        }
+
+        return {
+          id: crypto.randomUUID(),
+          name: uni.name,
+          country: uni.country,
+          ranking: typeof uni.ranking === 'number' ? uni.ranking : null,
+          academic_focus: Array.isArray(uni.academic_focus) ? uni.academic_focus : [fieldOfInterest],
+          research_funding_level: ['high', 'medium', 'low'].includes(uni.research_funding_level?.toLowerCase()) 
+            ? uni.research_funding_level.toLowerCase() 
+            : 'medium',
+          matchScore: Math.floor(Math.random() * 30) + 70 // Random score between 70-100 for now
+        };
+      });
 
       console.log(`✅ Successfully processed ${universities.length} universities`);
       console.log("🎓 Final universities data:", JSON.stringify(universities, null, 2));
