@@ -23,6 +23,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     const generateUniversities = async () => {
       const fieldOfInterest = localStorage.getItem("fieldOfInterest");
       const educationLevel = localStorage.getItem("educationLevel");
+      const numberOfUniversities = parseInt(localStorage.getItem("numberOfUniversities") || "6");
       
       if (!fieldOfInterest) {
         toast({
@@ -35,11 +36,12 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
       }
 
       try {
-        console.log("Generating universities with field:", fieldOfInterest);
+        console.log("Generating universities with field:", fieldOfInterest, "count:", numberOfUniversities);
         const { data, error } = await supabase.functions.invoke('getuniversities', {
           body: { 
             fieldOfInterest,
             educationLevel,
+            numberOfUniversities
           }
         });
 

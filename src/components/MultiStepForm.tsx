@@ -13,6 +13,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { BookOpen, GraduationCap, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Slider } from "@/components/ui/slider";
 
 interface MultiStepFormProps {
   onSubmit?: () => void;
@@ -25,7 +26,8 @@ export const MultiStepForm = ({ onSubmit }: MultiStepFormProps) => {
     userName: "",
     educationLevel: "",
     researchExperience: "",
-    academicGoals: ""
+    academicGoals: "",
+    numberOfUniversities: 6
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -43,12 +45,13 @@ export const MultiStepForm = ({ onSubmit }: MultiStepFormProps) => {
     localStorage.setItem("educationLevel", formData.educationLevel);
     localStorage.setItem("researchExperience", formData.researchExperience);
     localStorage.setItem("academicGoals", formData.academicGoals);
+    localStorage.setItem("numberOfUniversities", formData.numberOfUniversities.toString());
     
     // Navigate to universities page
     navigate('/universities');
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -114,6 +117,23 @@ export const MultiStepForm = ({ onSubmit }: MultiStepFormProps) => {
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Number of Universities</label>
+            <div className="pt-2">
+              <Slider
+                value={[formData.numberOfUniversities]}
+                onValueChange={(value) => handleInputChange("numberOfUniversities", value[0])}
+                min={3}
+                max={10}
+                step={1}
+                className="w-full"
+              />
+              <p className="text-sm text-muted-foreground mt-2 text-center">
+                Generate {formData.numberOfUniversities} universities
+              </p>
+            </div>
           </div>
 
           <div className="space-y-2">
