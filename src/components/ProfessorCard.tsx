@@ -29,12 +29,6 @@ interface ProfessorCardProps {
 }
 
 export const ProfessorCard = ({ professor, isSelected, isFlipped, onClick }: ProfessorCardProps) => {
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "bg-green-500";
-    if (score >= 60) return "bg-yellow-500";
-    return "bg-blue-500";
-  };
-
   return (
     <div
       className="relative w-full h-64 cursor-pointer perspective-1000"
@@ -45,15 +39,15 @@ export const ProfessorCard = ({ professor, isSelected, isFlipped, onClick }: Pro
       }`}>
         {/* Front of card */}
         <Card
-          className={`absolute w-full h-full p-4 backface-hidden bg-blue-900 text-white ${
-            isSelected ? 'ring-2 ring-white' : ''
+          className={`absolute w-full h-full p-4 backface-hidden bg-background border-border/50 ${
+            isSelected ? 'ring-2 ring-primary' : ''
           }`}
         >
           <div className="space-y-4">
             <div>
-              <h4 className="font-medium text-lg">{professor.name}</h4>
-              <p className="text-sm text-blue-100">{professor.position}</p>
-              <p className="text-sm text-blue-100">{professor.institution}</p>
+              <h4 className="font-medium text-lg text-foreground">{professor.name}</h4>
+              <p className="text-sm text-muted-foreground">{professor.position}</p>
+              <p className="text-sm text-muted-foreground">{professor.institution}</p>
             </div>
 
             {professor.matchScore && (
@@ -62,8 +56,8 @@ export const ProfessorCard = ({ professor, isSelected, isFlipped, onClick }: Pro
                   <Tooltip>
                     <TooltipTrigger>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm">Match Score</span>
-                        <span className="font-medium">{professor.matchScore.total}%</span>
+                        <span className="text-sm text-foreground">Match Score</span>
+                        <span className="font-medium text-foreground">{professor.matchScore.total}%</span>
                       </div>
                       <Progress 
                         value={professor.matchScore.total} 
@@ -96,16 +90,16 @@ export const ProfessorCard = ({ professor, isSelected, isFlipped, onClick }: Pro
         
         {/* Back of card */}
         <Card
-          className="absolute w-full h-full p-4 backface-hidden rotate-y-180 bg-blue-800 text-white"
+          className="absolute w-full h-full p-4 backface-hidden rotate-y-180 bg-background border-border/50"
         >
           <div className="space-y-4">
             <div>
-              <h4 className="font-medium mb-2">Recent Work</h4>
-              <p className="text-sm text-blue-100 line-clamp-4">{professor.recentWork}</p>
+              <h4 className="font-medium mb-2 text-foreground">Recent Work</h4>
+              <p className="text-sm text-muted-foreground line-clamp-4">{professor.recentWork}</p>
             </div>
             <div>
-              <h4 className="font-medium mb-1">Contact</h4>
-              <p className="text-sm text-blue-100">{professor.email}</p>
+              <h4 className="font-medium mb-1 text-foreground">Contact</h4>
+              <p className="text-sm text-muted-foreground">{professor.email}</p>
             </div>
           </div>
         </Card>
