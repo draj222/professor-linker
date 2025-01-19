@@ -18,6 +18,7 @@ const Index = () => {
   const [user, setUser] = useState(null);
   const [planInfo, setPlanInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showUniversitySelector, setShowUniversitySelector] = useState(false);
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
 
@@ -68,6 +69,14 @@ const Index = () => {
     } catch (error) {
       console.error('Error:', error);
     }
+  };
+
+  const handleProfileSubmit = () => {
+    setShowUniversitySelector(true);
+  };
+
+  const handleUniversitySelection = () => {
+    navigate('/loading');
   };
 
   if (loading) {
@@ -121,11 +130,23 @@ const Index = () => {
       <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
         <Navbar />
         <div className="container mx-auto px-4 py-20">
-          <h1 className="text-4xl font-bold text-foreground mb-8 text-center">Tell Us About Your Interests</h1>
-          <p className="text-lg text-center text-muted-foreground mb-12">
-            Help us understand your academic interests so we can find the perfect professors for you.
-          </p>
-          <MultiStepForm />
+          {!showUniversitySelector ? (
+            <>
+              <h1 className="text-4xl font-bold text-foreground mb-8 text-center">Tell Us About Your Interests</h1>
+              <p className="text-lg text-center text-muted-foreground mb-12">
+                Help us understand your academic interests so we can find the perfect professors for you.
+              </p>
+              <MultiStepForm onSubmit={handleProfileSubmit} />
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold text-foreground mb-8">Select Your Target Universities</h1>
+              <p className="text-lg text-muted-foreground mb-12">
+                Choose the universities you're interested in to help us find the most relevant professors.
+              </p>
+              <UniversitySelector onComplete={handleUniversitySelection} />
+            </>
+          )}
         </div>
       </div>
     );
@@ -135,10 +156,8 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-foreground mb-8">Find Your Perfect University</h1>
-        <UniversitySelector />
+        <AuthenticatedDashboard planInfo={planInfo} />
       </div>
-      <AuthenticatedDashboard planInfo={planInfo} />
     </div>
   );
 };
