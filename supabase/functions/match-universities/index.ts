@@ -39,7 +39,7 @@ serve(async (req) => {
 
     console.log(`Found ${universities?.length || 0} universities in database`);
 
-    // Generate match scores using OpenAI
+    // Use OpenAI to analyze and match universities
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -47,11 +47,15 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
-            content: `You are a university matching expert. Your task is to analyze student profiles and match them with universities based on their academic interests, goals, and experience. Return matches as a JSON array where each match includes the university's id, name, matchScore (0-100), and a brief matchReason.`
+            content: `You are a university matching expert. Your task is to analyze student profiles and match them with universities based on their academic interests, goals, and experience. For each university, provide:
+            1. A match score (0-100) based on alignment with the student's profile
+            2. A detailed breakdown of the match score
+            3. A brief explanation of why this university would be a good match
+            Return matches as a JSON array.`
           },
           {
             role: 'user',
@@ -64,13 +68,16 @@ serve(async (req) => {
             Available Universities:
             ${JSON.stringify(universities, null, 2)}
 
-            Analyze this student's profile and match them with universities from the provided list.
             For each university, provide:
-            1. The university's id and name (from the input data)
-            2. A match score (0-100) based on how well it fits the student's profile
-            3. A brief reason explaining why this university would be a good match
+            1. The university's id and name (from input data)
+            2. A match score (0-100)
+            3. A breakdown showing:
+               - Research Alignment (0-100)
+               - Academic Program Fit (0-100)
+               - Resources Match (0-100)
+            4. A brief reason for the match
 
-            Return ONLY a JSON array of matches, each with these exact fields: id, name, matchScore, matchReason`
+            Return ONLY a JSON array with these fields: id, name, matchScore, matchBreakdown, matchReason`
           }
         ],
         temperature: 0.7,
@@ -87,24 +94,8 @@ serve(async (req) => {
     const data = await response.json();
     console.log('OpenAI response:', data);
 
-    if (!data.choices?.[0]?.message?.content) {
-      throw new Error('Invalid response from OpenAI');
-    }
-
-    let matches;
-    try {
-      matches = JSON.parse(data.choices[0].message.content);
-      console.log('Parsed matches:', matches);
-    } catch (error) {
-      console.error('Error parsing OpenAI response:', error);
-      throw new Error('Failed to parse university matches');
-    }
-
-    // Validate matches structure
-    if (!Array.isArray(matches)) {
-      console.error('Matches is not an array:', matches);
-      throw new Error('Invalid matches format');
-    }
+    let matches = JSON.parse(data.choices[0].message.content);
+    console.log('Parsed matches:', matches);
 
     // Filter out any matches with a score less than 20
     const validMatches = matches.filter((match: any) => {
@@ -119,6 +110,9 @@ serve(async (req) => {
       }
       return isValid;
     });
+
+    // Sort matches by score
+    validMatches.sort((a: any, b: any) => b.matchScore - a.matchScore);
 
     console.log(`Returning ${validMatches.length} valid matches`);
 
