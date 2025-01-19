@@ -8,7 +8,7 @@ import { HeroSection } from '@/components/landing/HeroSection';
 import { FeatureCards } from '@/components/landing/FeatureCards';
 import { Testimonials } from '@/components/landing/Testimonials';
 import { NewsFeatures } from '@/components/landing/NewsFeatures';
-import { AuthenticatedDashboard } from '@/components/landing/AuthenticatedDashboard';
+import { CoreDashboard } from '@/components/dashboard/CoreDashboard';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
@@ -70,7 +70,6 @@ const Index = () => {
   };
 
   const handleProfileSubmit = () => {
-    // Skip university selection and go straight to loading
     navigate('/loading');
   };
 
@@ -138,9 +137,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <AuthenticatedDashboard planInfo={planInfo} />
-      </div>
+      <CoreDashboard />
     </div>
   );
 };
