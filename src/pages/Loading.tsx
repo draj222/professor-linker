@@ -10,7 +10,10 @@ const Loading = () => {
     const generateProfessors = async () => {
       try {
         const fieldOfInterest = localStorage.getItem("fieldOfInterest");
-        console.log("Starting professor generation with field:", fieldOfInterest);
+        const selectedEmailCount = localStorage.getItem("selectedEmailCount");
+        const numberOfProfessors = selectedEmailCount ? parseInt(selectedEmailCount) : 10;
+        
+        console.log("Starting professor generation with field:", fieldOfInterest, "count:", numberOfProfessors);
         
         if (!fieldOfInterest) {
           console.error("No field of interest found in localStorage");
@@ -23,7 +26,7 @@ const Loading = () => {
         const { data, error } = await supabase.functions.invoke('getprofessors', {
           body: { 
             fieldOfInterest,
-            numberOfProfessors: 5
+            numberOfProfessors
           }
         });
 
@@ -60,15 +63,15 @@ const Loading = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background/80 text-foreground">
       <div className="text-center space-y-8">
         <div className="relative w-32 h-32 mx-auto">
-          <div className="absolute inset-0 border-4 border-blue-500 rounded-full animate-spin"></div>
-          <div className="absolute inset-4 bg-blue-400 rounded-full animate-pulse"></div>
+          <div className="absolute inset-0 border-4 border-purple-500 rounded-full animate-spin"></div>
+          <div className="absolute inset-4 bg-purple-400 rounded-full animate-pulse"></div>
         </div>
         <div className="space-y-4">
           <h2 className="text-3xl font-bold text-white">Loading Your Journey</h2>
-          <p className="text-xl text-blue-300">Preparing your academic adventure...</p>
+          <p className="text-xl text-purple-300">Preparing your academic adventure...</p>
           <div className="text-gray-400 animate-pulse">Generating personalized recommendations</div>
         </div>
       </div>
