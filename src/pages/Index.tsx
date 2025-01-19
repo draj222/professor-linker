@@ -10,12 +10,15 @@ import { Testimonials } from '@/components/landing/Testimonials';
 import { NewsFeatures } from '@/components/landing/NewsFeatures';
 import { AuthenticatedDashboard } from '@/components/landing/AuthenticatedDashboard';
 import { Button } from '@/components/ui/button';
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 const Index = () => {
   const [user, setUser] = useState(null);
   const [planInfo, setPlanInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -68,7 +71,7 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black text-white">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/80 text-foreground">
         <Navbar />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-xl">Loading...</div>
@@ -79,8 +82,20 @@ const Index = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
         <Navigation />
+        <Button
+          variant="outline"
+          size="icon"
+          className="fixed top-4 right-4 z-50"
+          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+        >
+          {theme === "light" ? (
+            <Moon className="h-5 w-5" />
+          ) : (
+            <Sun className="h-5 w-5" />
+          )}
+        </Button>
         <div className="container mx-auto px-4 py-12 md:py-24">
           <HeroSection />
           <FeatureCards />
@@ -89,7 +104,7 @@ const Index = () => {
           <div className="text-center mt-16">
             <Button 
               size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg rounded-lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg rounded-lg"
               onClick={() => navigate('/login')}
             >
               Get Started
@@ -102,11 +117,11 @@ const Index = () => {
 
   if (!planInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
         <Navbar />
         <div className="container mx-auto px-4 py-20">
-          <h1 className="text-4xl font-bold text-white mb-8 text-center">Tell Us About Your Interests</h1>
-          <p className="text-lg text-center text-gray-300 mb-12">
+          <h1 className="text-4xl font-bold text-foreground mb-8 text-center">Tell Us About Your Interests</h1>
+          <p className="text-lg text-center text-muted-foreground mb-12">
             Help us understand your academic interests so we can find the perfect professors for you.
           </p>
           <MultiStepForm />
@@ -116,7 +131,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
       <Navbar />
       <AuthenticatedDashboard planInfo={planInfo} />
     </div>
