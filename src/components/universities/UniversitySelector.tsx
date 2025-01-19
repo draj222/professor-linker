@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Sparkles, Loader2, RefreshCcw } from "lucide-react";
+import { Sparkles, Loader2, RefreshCcw, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -19,8 +19,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
-  const [retryCount, setRetryCount] = useState(0);
-  const maxRetries = 3;
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const isMounted = useRef(true);
@@ -29,7 +28,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     isMounted.current = false;
   }, []);
 
-  const generateUniversities = useCallback(async (isRetry = false) => {
+  const generateUniversities = useCallback(async () => {
     const fieldOfInterest = localStorage.getItem("fieldOfInterest");
     const educationLevel = localStorage.getItem("educationLevel");
     const universityCount = localStorage.getItem("universityCount") || "6";
@@ -48,21 +47,18 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     
     setIsLoading(true);
     setProgress(0);
-    setStatus(isRetry ? `Retrying (Attempt ${retryCount + 1}/${maxRetries})...` : "Initializing...");
+    setStatus("Initializing...");
+    setError(null);
     
     try {
       console.log("Generating universities with field:", fieldOfInterest);
       setProgress(20);
       setStatus("Connecting to AI service...");
       
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), 15000);
-      });
-
       setProgress(40);
       setStatus("Analyzing academic programs...");
 
-      const fetchPromise = supabase.functions.invoke('getuniversities', {
+      const { data, error } = await supabase.functions.invoke('getuniversities', {
         body: { 
           fieldOfInterest,
           educationLevel,
@@ -70,16 +66,14 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
         }
       });
 
-      setProgress(60);
-      setStatus("Generating university matches...");
-
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
-
       if (!isMounted.current) return;
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error from Edge Function:", error);
+        throw new Error(error.message || 'Failed to generate universities');
+      }
 
-      setProgress(80);
+      setProgress(60);
       setStatus("Processing results...");
 
       if (!data || !Array.isArray(data)) {
@@ -94,7 +88,6 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
 
       setProgress(100);
       setStatus("Complete!");
-      setRetryCount(0); // Reset retry count on success
 
       if (isMounted.current) {
         setUniversities(data);
@@ -104,32 +97,19 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
         });
       }
     } catch (error: any) {
+      console.error("Error generating universities:", error);
+      setError(error.message || 'An unexpected error occurred');
+      toast({
+        title: "Error",
+        description: error.message || 'Failed to generate universities. Please try again.',
+        variant: "destructive",
+      });
+    } finally {
       if (isMounted.current) {
-        console.error("Error generating universities:", error);
-        
-        if (retryCount < maxRetries) {
-          console.log(`Retrying... Attempt ${retryCount + 1} of ${maxRetries}`);
-          setRetryCount(prev => prev + 1);
-          setTimeout(() => generateUniversities(true), 2000); // Retry after 2 seconds
-          return;
-        }
-        
-        let errorMessage = "Failed to generate university suggestions.";
-        if (error.message === 'Request timeout') {
-          errorMessage = "Request timed out. Please try again.";
-        }
-        
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
-        
-        setUniversities([]);
         setIsLoading(false);
       }
     }
-  }, [toast, navigate, retryCount]);
+  }, [toast, navigate]);
 
   useEffect(() => {
     const initializeGeneration = async () => {
@@ -146,7 +126,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
   }, [generateUniversities, isLoading, universities.length, cleanup]);
 
   const handleRetry = () => {
-    setRetryCount(0);
+    setError(null);
     setUniversities([]);
     generateUniversities();
   };
@@ -203,6 +183,34 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
               <p className="text-muted-foreground text-center text-sm">
                 We're analyzing universities worldwide to find the best matches for your academic interests
               </p>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-6 p-8">
+        <div className="relative w-full max-w-md">
+          <Card className="p-6 bg-white/5 backdrop-blur-lg border border-destructive/50">
+            <div className="space-y-4">
+              <div className="flex items-center justify-center text-destructive">
+                <AlertCircle className="h-12 w-12" />
+              </div>
+              <p className="text-xl text-center text-foreground font-medium">
+                Error Generating Universities
+              </p>
+              <p className="text-muted-foreground text-center text-sm">
+                {error}
+              </p>
+              <div className="flex justify-center">
+                <Button onClick={handleRetry} variant="outline" className="flex items-center gap-2">
+                  <RefreshCcw className="h-4 w-4" />
+                  Try Again
+                </Button>
+              </div>
             </div>
           </Card>
         </div>
