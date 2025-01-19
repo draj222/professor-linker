@@ -41,10 +41,13 @@ const PricingPage = () => {
 
       try {
         setIsGenerating(true);
-        console.log("Starting university matching for field:", fieldOfInterest);
+        console.log("Selected plan:", plan);
         
-        // Navigate to loading page first, which will then handle university matching
-        navigate("/loading");
+        // Store the selected plan
+        localStorage.setItem("selectedPlan", plan);
+        
+        // Navigate to results page for email count selection
+        navigate("/results");
 
       } catch (error) {
         console.error('Error in pricing flow:', error);
@@ -94,7 +97,7 @@ const PricingPage = () => {
                 onClick={() => handleGetStarted(plan.name)}
                 disabled={isGenerating}
               >
-                {isGenerating && plan.name === "Basic" ? "Generating..." : "Get Started"}
+                {isGenerating && plan.name === "Basic" ? "Processing..." : "Get Started"}
               </Button>
             </Card>
           ))}

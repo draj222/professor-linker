@@ -6,11 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import { Wand2, Mail, Sparkles } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const Results = () => {
   const [results, setResults] = useState([]);
   const [numberOfEmails, setNumberOfEmails] = useState(10);
   const [showResults, setShowResults] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedResults = localStorage.getItem("generatedProfessors");
@@ -31,15 +34,35 @@ const Results = () => {
     }
   }, []);
 
-  const handleGenerateEmails = () => {
-    const allResults = JSON.parse(localStorage.getItem("generatedProfessors") || "[]");
-    console.log(`Generating ${numberOfEmails} emails from ${allResults.length} available professors`);
-    
+  const handleGenerateEmails = async () => {
     localStorage.setItem("selectedEmailCount", numberOfEmails.toString());
     
-    setResults(allResults);
-    setShowResults(true);
-    toast.success(`Generated ${numberOfEmails} personalized emails`);
+    try {
+      const selectedUniversities = JSON.parse(localStorage.getItem("selectedUniversities") || "[]");
+      const fieldOfInterest = localStorage.getItem("fieldOfInterest");
+      
+      console.log(`Generating ${numberOfEmails} emails from selected universities:`, selectedUniversities);
+      
+      const { data, error } = await supabase.functions.invoke('getprofessors', {
+        body: { 
+          fieldOfInterest,
+          numberOfProfessors: numberOfEmails,
+          universities: selectedUniversities
+        }
+      });
+
+      if (error) throw error;
+
+      console.log("Generated professors:", data);
+      localStorage.setItem("generatedProfessors", JSON.stringify(data));
+      setResults(data);
+      setShowResults(true);
+      toast.success(`Generated ${numberOfEmails} personalized emails`);
+    } catch (error) {
+      console.error("Error generating professors:", error);
+      toast.error("Failed to generate professors. Please try again.");
+      navigate("/pricing");
+    }
   };
 
   if (!showResults) {
