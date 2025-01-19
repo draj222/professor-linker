@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, RefreshCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -19,6 +19,8 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
   const { toast } = useToast();
   const navigate = useNavigate();
   const isMounted = useRef(true);
@@ -27,7 +29,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     isMounted.current = false;
   }, []);
 
-  const generateUniversities = useCallback(async () => {
+  const generateUniversities = useCallback(async (isRetry = false) => {
     const fieldOfInterest = localStorage.getItem("fieldOfInterest");
     const educationLevel = localStorage.getItem("educationLevel");
     const universityCount = localStorage.getItem("universityCount") || "6";
@@ -46,8 +48,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     
     setIsLoading(true);
     setProgress(0);
-    setStatus("Initializing...");
-    setUniversities([]); // Clear existing universities
+    setStatus(isRetry ? `Retrying (Attempt ${retryCount + 1}/${maxRetries})...` : "Initializing...");
     
     try {
       console.log("Generating universities with field:", fieldOfInterest);
@@ -93,6 +94,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
 
       setProgress(100);
       setStatus("Complete!");
+      setRetryCount(0); // Reset retry count on success
 
       if (isMounted.current) {
         setUniversities(data);
@@ -101,13 +103,20 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
           description: `Found ${data.length} universities matching your interests`,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       if (isMounted.current) {
         console.error("Error generating universities:", error);
         
+        if (retryCount < maxRetries) {
+          console.log(`Retrying... Attempt ${retryCount + 1} of ${maxRetries}`);
+          setRetryCount(prev => prev + 1);
+          setTimeout(() => generateUniversities(true), 2000); // Retry after 2 seconds
+          return;
+        }
+        
         let errorMessage = "Failed to generate university suggestions.";
         if (error.message === 'Request timeout') {
-          errorMessage = "Request timed out. Please refresh the page to try again.";
+          errorMessage = "Request timed out. Please try again.";
         }
         
         toast({
@@ -117,17 +126,14 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
         });
         
         setUniversities([]);
-      }
-    } finally {
-      if (isMounted.current) {
         setIsLoading(false);
       }
     }
-  }, [toast, navigate]);
+  }, [toast, navigate, retryCount]);
 
   useEffect(() => {
     const initializeGeneration = async () => {
-      if (!isLoading) {
+      if (!isLoading && universities.length === 0) {
         await generateUniversities();
       }
     };
@@ -137,7 +143,13 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     return () => {
       cleanup();
     };
-  }, [generateUniversities, isLoading, cleanup]);
+  }, [generateUniversities, isLoading, universities.length, cleanup]);
+
+  const handleRetry = () => {
+    setRetryCount(0);
+    setUniversities([]);
+    generateUniversities();
+  };
 
   const handleComplete = async () => {
     if (favorites.length === 0) {
@@ -213,6 +225,16 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
                 Based on your academic interests and goals, we've found these universities that might be a great fit.
               </p>
             </div>
+            {universities.length > 0 && (
+              <Button
+                onClick={handleRetry}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <RefreshCcw className="h-4 w-4" />
+                Regenerate
+              </Button>
+            )}
           </div>
         </Card>
       </div>
