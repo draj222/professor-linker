@@ -40,26 +40,8 @@ const Loading = () => {
         console.log("Successfully generated professors:", data);
         localStorage.setItem("generatedProfessors", JSON.stringify(data));
         
-        // Get current user's plan
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const { data: userPlan } = await supabase
-            .from('user_plans')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          if (userPlan) {
-            console.log("User has a plan, navigating to index page");
-            navigate("/");
-          } else {
-            console.log("No user plan found, navigating to pricing");
-            navigate("/pricing");
-          }
-        } else {
-          console.log("No session found, navigating to pricing");
-          navigate("/pricing");
-        }
+        // Navigate to the generating results page
+        navigate("/generating");
 
       } catch (error) {
         console.error("Error in professor generation:", error);

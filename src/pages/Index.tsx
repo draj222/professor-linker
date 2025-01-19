@@ -8,10 +8,10 @@ import { HeroSection } from '@/components/landing/HeroSection';
 import { FeatureCards } from '@/components/landing/FeatureCards';
 import { Testimonials } from '@/components/landing/Testimonials';
 import { NewsFeatures } from '@/components/landing/NewsFeatures';
+import { AuthenticatedDashboard } from '@/components/landing/AuthenticatedDashboard';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
-import { AuthenticatedDashboard } from '@/components/landing/AuthenticatedDashboard';
 
 const Index = () => {
   const [user, setUser] = useState(null);
@@ -27,15 +27,7 @@ const Index = () => {
         console.log('Current session:', session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          // Fetch user's plan
-          const { data: userPlan } = await supabase
-            .from('user_plans')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          setPlanInfo(userPlan);
-          // Removed the redirect to /dashboard
+          await fetchUserPlan(session.user.id);
         }
       } catch (error) {
         console.error('Error checking auth:', error);
@@ -50,22 +42,36 @@ const Index = () => {
       console.log('Auth state changed:', event);
       setUser(session?.user ?? null);
       if (session?.user) {
-        const { data: userPlan } = await supabase
-          .from('user_plans')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .single();
-        
-        setPlanInfo(userPlan);
-        // Removed the redirect to /dashboard
+        await fetchUserPlan(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
+
+  const fetchUserPlan = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_plans')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching plan:', error);
+        return;
+      }
+
+      console.log('Fetched plan data:', data);
+      setPlanInfo(data);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
   const handleProfileSubmit = () => {
-    navigate('/pricing');
+    // Skip university selection and go straight to loading
+    navigate('/loading');
   };
 
   if (loading) {
