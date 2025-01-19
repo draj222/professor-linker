@@ -96,9 +96,9 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-background/80 text-foreground">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/80 text-foreground pt-16">
         <Navbar />
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
           <div className="text-xl">Loading...</div>
         </div>
       </div>
@@ -161,7 +161,9 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
       <Navbar />
-      <CoreDashboard />
+      <div className="pt-16">
+        <CoreDashboard />
+      </div>
       {!planInfo && (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
           <Button

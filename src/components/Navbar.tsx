@@ -62,26 +62,30 @@ export const Navbar = () => {
   }
 
   return (
-    <nav className="bg-blue-900/50 backdrop-blur-sm fixed top-0 left-0 right-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link 
-            to="/" 
-            className="flex items-center space-x-2 text-white hover:text-blue-200 transition-colors"
-          >
-            <Home className="h-5 w-5" />
-            <span className="font-medium">Home</span>
-          </Link>
+    <>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-900/80 to-blue-900/80 backdrop-blur-md border-b border-white/10 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link 
+              to="/" 
+              className="flex items-center space-x-2 text-white hover:text-blue-200 transition-colors"
+            >
+              <Home className="h-5 w-5" />
+              <span className="font-medium">Home</span>
+            </Link>
 
-          <div className="flex items-center space-x-4">
-            <FieldOfInterest 
-              initialValue={userDetails.fieldOfInterest}
-              onUpdate={handleFieldOfInterestUpdate}
-            />
-            <ProfileDropdown userDetails={userDetails} />
+            <div className="flex items-center space-x-4">
+              <FieldOfInterest 
+                initialValue={userDetails.fieldOfInterest}
+                onUpdate={handleFieldOfInterestUpdate}
+              />
+              <ProfileDropdown userDetails={userDetails} />
+            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+      {/* Add a spacer to prevent content from being hidden under the navbar */}
+      <div className="h-16" />
+    </>
   );
 };
