@@ -38,6 +38,9 @@ const Results = () => {
     localStorage.setItem("selectedEmailCount", numberOfEmails.toString());
     
     try {
+      // Navigate to the generating screen first
+      navigate("/generating");
+      
       const selectedUniversities = JSON.parse(localStorage.getItem("selectedUniversities") || "[]");
       const fieldOfInterest = localStorage.getItem("fieldOfInterest");
       
@@ -57,6 +60,7 @@ const Results = () => {
       localStorage.setItem("generatedProfessors", JSON.stringify(data));
       setResults(data);
       setShowResults(true);
+      navigate("/results");
       toast.success(`Generated ${numberOfEmails} personalized emails`);
     } catch (error) {
       console.error("Error generating professors:", error);
