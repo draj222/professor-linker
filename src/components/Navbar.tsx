@@ -66,15 +66,15 @@ export const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-900/80 to-blue-900/80 backdrop-blur-md border-b border-white/10 shadow-lg">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-[#9b87f5]/90 to-[#7E69AB]/90 backdrop-blur-md border-b border-white/10 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link 
               to="/" 
-              className="flex items-center space-x-2 text-white hover:text-blue-200 transition-colors"
+              className="flex items-center space-x-2 text-white hover:text-[#D6BCFA] transition-colors font-medium"
             >
               <Home className="h-5 w-5" />
-              <span className="font-medium">Home</span>
+              <span>Professor Linker</span>
             </Link>
 
             <div className="flex items-center space-x-4">
@@ -82,7 +82,7 @@ export const Navbar = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-                className="text-white hover:text-blue-200 transition-colors"
+                className="text-white hover:text-[#D6BCFA] transition-colors"
               >
                 {theme === "light" ? (
                   <Moon className="h-5 w-5" />
