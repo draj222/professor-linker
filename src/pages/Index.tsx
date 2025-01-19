@@ -6,6 +6,8 @@ import { MultiStepForm } from '@/components/MultiStepForm';
 import { Navigation } from '@/components/landing/Navigation';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { FeatureCards } from '@/components/landing/FeatureCards';
+import { Testimonials } from '@/components/landing/Testimonials';
+import { NewsFeatures } from '@/components/landing/NewsFeatures';
 import { AuthenticatedDashboard } from '@/components/landing/AuthenticatedDashboard';
 import { Button } from '@/components/ui/button';
 
@@ -82,7 +84,9 @@ const Index = () => {
         <div className="container mx-auto px-4 py-12 md:py-24">
           <HeroSection />
           <FeatureCards />
-          <div className="text-center">
+          <Testimonials />
+          <NewsFeatures />
+          <div className="text-center mt-16">
             <Button 
               size="lg"
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg rounded-lg"
