@@ -35,9 +35,7 @@ const Index = () => {
             .single();
           
           setPlanInfo(userPlan);
-          
-          // Redirect to dashboard if authenticated
-          navigate('/dashboard');
+          // Removed the redirect to /dashboard
         }
       } catch (error) {
         console.error('Error checking auth:', error);
@@ -59,8 +57,7 @@ const Index = () => {
           .single();
         
         setPlanInfo(userPlan);
-        // Redirect to dashboard on login
-        navigate('/dashboard');
+        // Removed the redirect to /dashboard
       }
     });
 
