@@ -24,7 +24,7 @@ export const AnalyticsSection = ({ emailStats, matchRates }: AnalyticsSectionPro
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
+      <Card className="bg-white/10 backdrop-blur-lg border-gray-700 hover:bg-white/15 transition-colors">
         <CardHeader>
           <CardTitle>Email Performance</CardTitle>
         </CardHeader>
@@ -50,7 +50,7 @@ export const AnalyticsSection = ({ emailStats, matchRates }: AnalyticsSectionPro
         </CardContent>
       </Card>
 
-      <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
+      <Card className="bg-white/10 backdrop-blur-lg border-gray-700 hover:bg-white/15 transition-colors">
         <CardHeader>
           <CardTitle>Match Rate Trends</CardTitle>
         </CardHeader>

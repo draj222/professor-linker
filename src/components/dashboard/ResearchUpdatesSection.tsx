@@ -26,7 +26,7 @@ export const ResearchUpdatesSection = ({ updates }: ResearchUpdatesSectionProps)
   };
 
   return (
-    <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
+    <Card className="bg-white/10 backdrop-blur-lg border-gray-700 hover:bg-white/15 transition-colors">
       <CardHeader>
         <CardTitle>Recent Research Updates</CardTitle>
       </CardHeader>

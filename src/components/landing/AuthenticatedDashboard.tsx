@@ -54,7 +54,6 @@ export const AuthenticatedDashboard = ({ planInfo }: AuthenticatedDashboardProps
         }
 
         // Mock data for demonstration
-        // In a real app, these would come from the database
         setDashboardData(prev => ({
           ...prev,
           matchRates: [
@@ -112,7 +111,7 @@ export const AuthenticatedDashboard = ({ planInfo }: AuthenticatedDashboardProps
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
+        <Card className="bg-white/10 backdrop-blur-lg border-gray-700 hover:bg-white/15 transition-colors">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="h-6 w-6 text-blue-400" />
@@ -124,10 +123,16 @@ export const AuthenticatedDashboard = ({ planInfo }: AuthenticatedDashboardProps
               {planInfo.emails_sent} / {planInfo.total_emails}
             </div>
             <p className="text-gray-400">emails remaining</p>
+            <div className="w-full bg-gray-700 rounded-full h-2.5 mt-2">
+              <div 
+                className="bg-blue-500 h-2.5 rounded-full transition-all duration-500" 
+                style={{ width: `${((planInfo.total_emails - planInfo.emails_sent) / planInfo.total_emails) * 100}%` }}
+              />
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
+        <Card className="bg-white/10 backdrop-blur-lg border-gray-700 hover:bg-white/15 transition-colors">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ChartBar className="h-6 w-6 text-green-400" />
@@ -142,7 +147,7 @@ export const AuthenticatedDashboard = ({ planInfo }: AuthenticatedDashboardProps
           </CardContent>
         </Card>
 
-        <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
+        <Card className="bg-white/10 backdrop-blur-lg border-gray-700 hover:bg-white/15 transition-colors">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Star className="h-6 w-6 text-yellow-400" />
@@ -166,7 +171,7 @@ export const AuthenticatedDashboard = ({ planInfo }: AuthenticatedDashboardProps
         <ResearchUpdatesSection updates={dashboardData.updates} />
       </div>
 
-      <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
+      <Card className="bg-white/10 backdrop-blur-lg border-gray-700 hover:bg-white/15 transition-colors">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-purple-400" />

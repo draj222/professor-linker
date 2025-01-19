@@ -18,7 +18,7 @@ export const RecommendationsSection = ({ recommendations }: RecommendationsSecti
   const navigate = useNavigate();
 
   return (
-    <Card className="bg-white/10 backdrop-blur-lg border-gray-700">
+    <Card className="bg-white/10 backdrop-blur-lg border-gray-700 hover:bg-white/15 transition-colors">
       <CardHeader>
         <CardTitle>Recommended Professors</CardTitle>
       </CardHeader>
