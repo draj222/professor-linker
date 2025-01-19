@@ -22,6 +22,11 @@ serve(async (req) => {
       throw new Error('Field of interest is required');
     }
 
+    if (!openAIApiKey) {
+      console.error("OpenAI API key not configured");
+      throw new Error('OpenAI API key is not configured');
+    }
+
     const count = parseInt(universityCount);
     console.log(`Generating ${count} universities for field: ${fieldOfInterest}, education level: ${educationLevel}`);
 
@@ -32,7 +37,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-3.5-turbo',
         messages: [
           {
             role: 'system',
@@ -48,7 +53,14 @@ serve(async (req) => {
     if (!response.ok) {
       const errorData = await response.text();
       console.error("OpenAI API error response:", errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      
+      if (response.status === 401) {
+        throw new Error('Invalid OpenAI API key');
+      } else if (response.status === 429) {
+        throw new Error('OpenAI API rate limit exceeded or insufficient credits');
+      } else {
+        throw new Error(`OpenAI API error: ${response.status}`);
+      }
     }
 
     const data = await response.json();
