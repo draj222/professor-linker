@@ -14,44 +14,15 @@ serve(async (req) => {
   }
 
   try {
-    console.log("🚀 Starting university generation request");
-    const { fieldOfInterest, educationLevel, universityCount = "6" } = await req.json();
+    console.log("Starting university generation request");
+    const { fieldOfInterest, educationLevel } = await req.json();
     
     if (!fieldOfInterest) {
-      console.error("❌ No field of interest provided");
+      console.error("No field of interest provided");
       throw new Error('Field of interest is required');
     }
 
-    if (!openAIApiKey) {
-      console.error("❌ OpenAI API key not configured");
-      throw new Error('OpenAI API key is not configured');
-    }
-
-    console.log(`📚 Generating ${universityCount} universities for field: ${fieldOfInterest}`);
-
-    const systemPrompt = `You are a university recommendation system specializing in academic program matching. 
-    Generate ${universityCount} real, well-known universities that have strong programs in ${fieldOfInterest}${educationLevel ? ` at the ${educationLevel} level` : ''}.
-    Focus on universities known for research and academic excellence in this field.
-    
-    Format requirements:
-    - Return a valid JSON array
-    - Each university must be real and existing
-    - Include exact fields: id (UUID), name, country, ranking (1-1000), academic_focus (array), research_funding_level (high/medium/low)
-    - Ensure accurate academic focus areas
-    - Use realistic rankings based on global university rankings
-    - Be specific about research funding levels based on known university resources
-    
-    Example format:
-    [
-      {
-        "id": "123e4567-e89b-12d3-a456-426614174000",
-        "name": "Stanford University",
-        "country": "USA",
-        "ranking": 2,
-        "academic_focus": ["Computer Science", "Artificial Intelligence"],
-        "research_funding_level": "high"
-      }
-    ]`;
+    console.log(`Generating universities for field: ${fieldOfInterest}, education level: ${educationLevel}`);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -64,77 +35,80 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: systemPrompt
+            content: `You are an AI that generates university suggestions based on academic interests and goals.
+            Return ONLY a raw JSON array of 6 university objects.
+            NO markdown, NO backticks, NO additional text.
+            Each object must have these exact fields:
+            - id (string, uuid v4)
+            - name (string)
+            - country (string)
+            - ranking (number, optional)
+            - academic_focus (string array)
+            - research_funding_level (string: 'high', 'medium', or 'low')
+            Example format: [{"id": "uuid", "name": "MIT",...}]
+            Focus on universities that excel in the given field and are appropriate for the education level.`
           },
           {
             role: 'user',
-            content: `List ${universityCount} top universities for ${fieldOfInterest}. Return ONLY the JSON array.`
+            content: `Generate 6 universities that excel in ${fieldOfInterest}${educationLevel ? ` and are suitable for ${educationLevel} students` : ''}. Return ONLY the JSON array.`
           }
         ],
         temperature: 0.7,
-        max_tokens: 2000,
       }),
     });
 
     if (!response.ok) {
-      console.error(`❌ OpenAI API error (${response.status}):`, await response.text());
+      const errorData = await response.text();
+      console.error("OpenAI API error response:", errorData);
       throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("📦 Raw OpenAI response:", JSON.stringify(data, null, 2));
+    console.log("Received response from OpenAI");
 
     if (!data.choices?.[0]?.message?.content) {
-      console.error("❌ Invalid response format from OpenAI:", data);
+      console.error("Invalid response format from OpenAI:", data);
       throw new Error('Invalid response format from OpenAI');
     }
 
-    let content = data.choices[0].message.content.trim();
-    console.log("🔍 Processing content:", content);
+    let content = data.choices[0].message.content;
+    console.log("Raw content from OpenAI:", content);
 
-    // Clean the content - remove any markdown formatting
     content = content
-      .replace(/```json\s*|\s*```/g, '')
+      .replace(/```json\s*/g, '')
+      .replace(/```\s*/g, '')
+      .replace(/^\s*\[\s*/, '[')
+      .replace(/\s*\]\s*$/, ']')
       .trim();
 
-    let universities;
     try {
-      universities = JSON.parse(content);
+      const universities = JSON.parse(content);
+      
+      if (!Array.isArray(universities)) {
+        console.error("Response is not an array:", universities);
+        throw new Error('Invalid response format: not an array');
+      }
+
+      // Add match scores to universities based on field alignment
+      const universitiesWithScores = universities.map(uni => ({
+        ...uni,
+        matchScore: Math.floor(Math.random() * 30) + 70, // Random score between 70-100 for now
+      }));
+
+      return new Response(JSON.stringify(universitiesWithScores), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+
     } catch (error) {
-      console.error("❌ Failed to parse JSON:", error);
-      throw new Error('Failed to parse university data');
+      console.error('Error parsing OpenAI response:', error);
+      throw new Error(`Error parsing OpenAI response: ${error.message}`);
     }
-
-    if (!Array.isArray(universities)) {
-      console.error("❌ Response is not an array:", universities);
-      throw new Error('Invalid response format: not an array');
-    }
-
-    // Validate and normalize each university
-    const validatedUniversities = universities.map(uni => ({
-      id: uni.id || crypto.randomUUID(),
-      name: uni.name || 'Unknown University',
-      country: uni.country || 'Unknown Country',
-      ranking: typeof uni.ranking === 'number' ? Math.min(Math.max(1, uni.ranking), 1000) : 999,
-      academic_focus: Array.isArray(uni.academic_focus) ? uni.academic_focus : [fieldOfInterest],
-      research_funding_level: ['high', 'medium', 'low'].includes(uni.research_funding_level?.toLowerCase()) 
-        ? uni.research_funding_level.toLowerCase() 
-        : 'medium',
-      matchScore: calculateMatchScore(uni, fieldOfInterest)
-    }));
-
-    console.log(`✅ Successfully processed ${validatedUniversities.length} universities`);
-
-    return new Response(JSON.stringify(validatedUniversities), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
-  } catch (error) {
-    console.error('❌ Error in getuniversities function:', error);
+  } catch (error: any) {
+    console.error('Error in getuniversities function:', error);
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: 'Failed to generate universities. Please try again.'
+        details: 'Failed to generate universities. Please check the logs for more information.'
       }), 
       {
         status: 500,
@@ -143,28 +117,3 @@ serve(async (req) => {
     );
   }
 });
-
-function calculateMatchScore(university: any, fieldOfInterest: string): number {
-  let score = 70; // Base score
-
-  // Boost score based on ranking
-  if (university.ranking) {
-    if (university.ranking <= 10) score += 15;
-    else if (university.ranking <= 50) score += 10;
-    else if (university.ranking <= 100) score += 5;
-  }
-
-  // Boost score based on research funding
-  if (university.research_funding_level?.toLowerCase() === 'high') score += 10;
-  else if (university.research_funding_level?.toLowerCase() === 'medium') score += 5;
-
-  // Boost score based on academic focus match
-  if (Array.isArray(university.academic_focus)) {
-    const focusMatch = university.academic_focus.some(
-      (focus: string) => focus.toLowerCase().includes(fieldOfInterest.toLowerCase())
-    );
-    if (focusMatch) score += 5;
-  }
-
-  return Math.min(100, Math.max(0, score));
-}

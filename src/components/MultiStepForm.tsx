@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { BookOpen, GraduationCap, Sparkles, University } from "lucide-react";
+import { BookOpen, GraduationCap, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface MultiStepFormProps {
@@ -25,8 +25,7 @@ export const MultiStepForm = ({ onSubmit }: MultiStepFormProps) => {
     userName: "",
     educationLevel: "",
     researchExperience: "",
-    academicGoals: "",
-    universityCount: "6" // Default value
+    academicGoals: ""
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -44,7 +43,6 @@ export const MultiStepForm = ({ onSubmit }: MultiStepFormProps) => {
     localStorage.setItem("educationLevel", formData.educationLevel);
     localStorage.setItem("researchExperience", formData.researchExperience);
     localStorage.setItem("academicGoals", formData.academicGoals);
-    localStorage.setItem("universityCount", formData.universityCount);
     
     // Navigate to universities page
     navigate('/universities');
@@ -114,24 +112,6 @@ export const MultiStepForm = ({ onSubmit }: MultiStepFormProps) => {
                 <SelectItem value="phd">PhD Student</SelectItem>
                 <SelectItem value="postdoc">Postdoctoral Researcher</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Number of Universities to Generate</label>
-            <Select
-              value={formData.universityCount}
-              onValueChange={(value) => handleInputChange("universityCount", value)}
-            >
-              <SelectTrigger className="bg-white/5 border-white/10 text-foreground">
-                <SelectValue placeholder="Select number of universities" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="3">3 Universities</SelectItem>
-                <SelectItem value="6">6 Universities</SelectItem>
-                <SelectItem value="9">9 Universities</SelectItem>
-                <SelectItem value="12">12 Universities</SelectItem>
               </SelectContent>
             </Select>
           </div>
