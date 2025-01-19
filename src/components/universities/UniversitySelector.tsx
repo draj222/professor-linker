@@ -67,7 +67,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     generateUniversities();
   }, [toast, navigate]);
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (favorites.length === 0) {
       toast({
         title: "No Universities Selected",
@@ -77,8 +77,8 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
       return;
     }
     
-    // Save favorites to user's account if they're logged in
-    const saveUserFavorites = async () => {
+    try {
+      // Save favorites to user's account if they're logged in
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         for (const universityId of favorites) {
@@ -90,35 +90,44 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
             });
         }
       }
-    };
 
-    saveUserFavorites();
-    onComplete?.();
+      navigate('/generating');
+    } catch (error) {
+      console.error('Error saving favorites:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save your selections. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#9b87f5]" />
         <p className="text-lg text-muted-foreground">Generating university suggestions...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-lg p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-primary" />
-          Suggested Universities
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Based on your academic interests and goals, we've found these universities that might be a great fit.
-        </p>
+    <div className="space-y-6 max-w-7xl mx-auto px-4 py-8">
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-pink-500/30 blur-3xl -z-10" />
+        <Card className="p-6 bg-white/5 backdrop-blur-lg border border-white/10">
+          <h2 className="text-2xl font-semibold mb-2 flex items-center gap-2 text-foreground">
+            <Sparkles className="h-6 w-6 text-[#9b87f5]" />
+            Suggested Universities
+          </h2>
+          <p className="text-muted-foreground">
+            Based on your academic interests and goals, we've found these universities that might be a great fit.
+          </p>
+        </Card>
       </div>
 
-      <Card className="p-6">
-        <h3 className="text-xl font-semibold mb-4">
+      <Card className="p-6 bg-white/5 backdrop-blur-lg border border-white/10">
+        <h3 className="text-xl font-semibold mb-4 text-foreground">
           {universities.length > 0 ? "Recommended Universities" : "No Universities Found"}
         </h3>
         
@@ -139,7 +148,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
       <div className="flex justify-center mt-8">
         <Button
           onClick={handleComplete}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-2 text-lg"
+          className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white px-8 py-2 text-lg rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           disabled={favorites.length === 0}
         >
           Continue to Professor Search

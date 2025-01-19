@@ -41,17 +41,19 @@ export const UniversityList = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {universities.map((university) => (
-        <Card key={university.id} className="p-4 bg-white/5 backdrop-blur-lg border border-white/10">
+        <Card key={university.id} className="group p-4 bg-white/5 backdrop-blur-lg border border-white/10 hover:border-[#9b87f5]/50 transition-all duration-300">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <h3 className="font-semibold text-lg">{university.name}</h3>
+              <h3 className="font-semibold text-lg text-foreground group-hover:text-[#9b87f5] transition-colors">
+                {university.name}
+              </h3>
               <p className="text-sm text-muted-foreground">{university.country}</p>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onFavorite(university.id)}
-              className={favorites.includes(university.id) ? "text-yellow-500" : "text-muted-foreground"}
+              className={`${favorites.includes(university.id) ? 'text-yellow-500' : 'text-muted-foreground'} hover:text-yellow-500 transition-colors`}
             >
               <Star className="h-5 w-5" fill={favorites.includes(university.id) ? "currentColor" : "none"} />
             </Button>
@@ -60,32 +62,35 @@ export const UniversityList = ({
           <div className="space-y-2">
             {university.ranking && (
               <p className="text-sm">
-                <span className="text-muted-foreground">Ranking:</span> #{university.ranking}
+                <span className="text-muted-foreground">Ranking:</span>{" "}
+                <span className="text-foreground">#{university.ranking}</span>
               </p>
             )}
             {university.academic_focus && (
               <p className="text-sm">
                 <span className="text-muted-foreground">Focus:</span>{" "}
-                {university.academic_focus.join(", ")}
+                <span className="text-foreground">{university.academic_focus.join(", ")}</span>
               </p>
             )}
             {university.research_funding_level && (
               <p className="text-sm">
                 <span className="text-muted-foreground">Research Funding:</span>{" "}
-                {university.research_funding_level.charAt(0).toUpperCase() + 
-                 university.research_funding_level.slice(1)}
+                <span className="text-foreground">
+                  {university.research_funding_level.charAt(0).toUpperCase() + 
+                   university.research_funding_level.slice(1)}
+                </span>
               </p>
             )}
             <div className="mt-2 pt-2 border-t border-white/10">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Match Score:</span>
-                <span className="text-sm font-medium">
+                <span className="text-sm font-medium text-[#9b87f5]">
                   {getMatchScore(university.id)}%
                 </span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-2 mt-1">
                 <div
-                  className="bg-primary rounded-full h-2 transition-all"
+                  className="bg-gradient-to-r from-[#9b87f5] to-[#D6BCFA] rounded-full h-2 transition-all duration-500"
                   style={{ width: `${getMatchScore(university.id)}%` }}
                 />
               </div>
