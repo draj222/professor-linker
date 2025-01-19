@@ -46,45 +46,45 @@ const Results = () => {
 
   if (!showResults) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-background/80 text-foreground">
+      <div className="min-h-screen bg-background text-foreground">
         <Navbar />
-        <div className="max-w-7xl mx-auto pt-24 px-4">
-          <div className="text-center mb-12 animate-fade-in">
-            <h1 className="text-4xl font-bold text-white mb-4">
+        <div className="container mx-auto pt-24 px-4">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
               Email Generation
             </h1>
-            <p className="text-gray-300 text-lg">
+            <p className="text-muted-foreground text-lg">
               Our AI will craft personalized emails for your selected professors
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <Card className="p-6 bg-gradient-to-br from-purple-900/50 to-transparent backdrop-blur-lg border-purple-700/30 animate-fade-in hover:scale-105 transition-transform duration-300">
-              <Sparkles className="w-12 h-12 text-purple-400 mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Smart Templates</h3>
-              <p className="text-gray-300">Professionally crafted templates for various academic purposes</p>
+          <div className="grid md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
+            <Card className="p-6 bg-card hover:bg-accent/5 transition-colors border border-border/50">
+              <Sparkles className="w-12 h-12 text-primary mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">Smart Templates</h3>
+              <p className="text-muted-foreground">Professionally crafted templates for various academic purposes</p>
             </Card>
 
-            <Card className="p-6 bg-gradient-to-br from-purple-900/50 to-transparent backdrop-blur-lg border-purple-700/30 animate-fade-in hover:scale-105 transition-transform duration-300" style={{ animationDelay: '0.1s' }}>
-              <Wand2 className="w-12 h-12 text-purple-400 mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">AI Personalization</h3>
-              <p className="text-gray-300">Each email is uniquely tailored to the professor's research</p>
+            <Card className="p-6 bg-card hover:bg-accent/5 transition-colors border border-border/50">
+              <Wand2 className="w-12 h-12 text-primary mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">AI Personalization</h3>
+              <p className="text-muted-foreground">Each email is uniquely tailored to the professor's research</p>
             </Card>
 
-            <Card className="p-6 bg-gradient-to-br from-purple-900/50 to-transparent backdrop-blur-lg border-purple-700/30 animate-fade-in hover:scale-105 transition-transform duration-300" style={{ animationDelay: '0.2s' }}>
-              <Mail className="w-12 h-12 text-purple-400 mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Bulk Generation</h3>
-              <p className="text-gray-300">Generate multiple emails in seconds with consistent quality</p>
+            <Card className="p-6 bg-card hover:bg-accent/5 transition-colors border border-border/50">
+              <Mail className="w-12 h-12 text-primary mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">Bulk Generation</h3>
+              <p className="text-muted-foreground">Generate multiple emails in seconds with consistent quality</p>
             </Card>
           </div>
 
-          <Card className="max-w-xl mx-auto p-8 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border-purple-700/30 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <h2 className="text-2xl font-bold text-white mb-6 text-center">
+          <Card className="max-w-xl mx-auto p-8 bg-card border border-border/50">
+            <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
               How many emails would you like to generate?
             </h2>
             <div className="space-y-8">
               <div className="space-y-4">
-                <div className="flex justify-between text-sm text-gray-300">
+                <div className="flex justify-between text-sm text-muted-foreground">
                   <span>1 email</span>
                   <span>50 emails</span>
                 </div>
@@ -97,13 +97,13 @@ const Results = () => {
                   step={1}
                   className="my-4"
                 />
-                <div className="text-center text-xl font-semibold text-white">
+                <div className="text-center text-xl font-semibold text-foreground">
                   {numberOfEmails} email{numberOfEmails !== 1 ? 's' : ''}
                 </div>
               </div>
               <Button 
                 onClick={handleGenerateEmails}
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 transition-all duration-300 animate-shine"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 size="lg"
               >
                 Generate Emails
@@ -116,14 +116,14 @@ const Results = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-background/80 text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-      <div className="max-w-7xl mx-auto pt-24 px-4">
-        <div className="text-center mb-12 animate-fade-in">
-          <h1 className="text-4xl font-bold text-white mb-4">
+      <div className="container mx-auto pt-24 px-4">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
             Your Generated Emails
           </h1>
-          <p className="text-gray-300 text-lg">
+          <p className="text-muted-foreground text-lg">
             Personalized emails ready to help you connect with professors
           </p>
         </div>

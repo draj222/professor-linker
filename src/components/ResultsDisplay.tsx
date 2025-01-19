@@ -100,30 +100,30 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 animate-fade-in">
+    <div className="w-full max-w-4xl mx-auto space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="p-6 bg-gradient-to-br from-purple-900/50 to-transparent backdrop-blur-lg border-purple-700/30 hover:scale-105 transition-transform duration-300">
-          <Mail className="w-12 h-12 text-purple-400 mb-4" />
-          <h3 className="text-xl font-semibold text-white mb-2">{processedResults.length} Emails</h3>
-          <p className="text-gray-300">Ready to be personalized and sent</p>
+        <Card className="p-6 bg-card hover:bg-accent/5 transition-colors border border-border/50">
+          <Mail className="w-12 h-12 text-primary mb-4" />
+          <h3 className="text-xl font-semibold text-foreground mb-2">{processedResults.length} Emails</h3>
+          <p className="text-muted-foreground">Ready to be personalized and sent</p>
         </Card>
 
-        <Card className="p-6 bg-gradient-to-br from-pink-900/50 to-transparent backdrop-blur-lg border-pink-700/30 hover:scale-105 transition-transform duration-300">
-          <Send className="w-12 h-12 text-pink-400 mb-4" />
-          <h3 className="text-xl font-semibold text-white mb-2">One Click Send</h3>
-          <p className="text-gray-300">Instantly deliver your emails</p>
+        <Card className="p-6 bg-card hover:bg-accent/5 transition-colors border border-border/50">
+          <Send className="w-12 h-12 text-primary mb-4" />
+          <h3 className="text-xl font-semibold text-foreground mb-2">One Click Send</h3>
+          <p className="text-muted-foreground">Instantly deliver your emails</p>
         </Card>
 
-        <Card className="p-6 bg-gradient-to-br from-blue-900/50 to-transparent backdrop-blur-lg border-blue-700/30 hover:scale-105 transition-transform duration-300">
-          <Star className="w-12 h-12 text-blue-400 mb-4" />
-          <h3 className="text-xl font-semibold text-white mb-2">Smart Match</h3>
-          <p className="text-gray-300">AI-powered personalization</p>
+        <Card className="p-6 bg-card hover:bg-accent/5 transition-colors border border-border/50">
+          <Star className="w-12 h-12 text-primary mb-4" />
+          <h3 className="text-xl font-semibold text-foreground mb-2">Smart Match</h3>
+          <p className="text-muted-foreground">AI-powered personalization</p>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-4">
+          <h2 className="text-2xl font-semibold text-foreground mb-4">
             Selected Professors
           </h2>
           <ProfessorList
@@ -135,10 +135,10 @@ export const ResultsDisplay = ({ results }: { results: Professor[] }) => {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-4">
+          <h2 className="text-2xl font-semibold text-foreground mb-4">
             Email Preview
           </h2>
-          <Card className="glass-panel p-6 bg-gradient-to-br from-white/10 to-transparent backdrop-blur-lg border-purple-700/30">
+          <Card className="p-6 bg-card border border-border/50">
             <EmailDisplay
               professor={selectedProfessor}
               onCopy={copyToClipboard}
