@@ -10,12 +10,16 @@ const Loading = () => {
     const generateProfessors = async () => {
       try {
         const fieldOfInterest = localStorage.getItem("fieldOfInterest");
+        console.log("Starting professor generation with field:", fieldOfInterest);
+        
         if (!fieldOfInterest) {
-          throw new Error("No field of interest specified");
+          console.error("No field of interest found in localStorage");
+          toast.error("Please specify your field of interest first");
+          navigate("/");
+          return;
         }
 
-        console.log("Generating professors for field:", fieldOfInterest);
-        
+        console.log("Calling edge function to generate professors...");
         const { data, error } = await supabase.functions.invoke('getprofessors', {
           body: { 
             fieldOfInterest,
@@ -28,26 +32,29 @@ const Loading = () => {
           throw error;
         }
 
-        if (!data || !Array.isArray(data)) {
-          console.error("Invalid data format received:", data);
-          throw new Error("Invalid response format from server");
+        if (!data) {
+          console.error("No data received from edge function");
+          throw new Error("No professors were generated");
         }
 
         console.log("Successfully generated professors:", data);
         localStorage.setItem("generatedProfessors", JSON.stringify(data));
+        
+        // Navigate to the generating results page
         navigate("/generating");
 
       } catch (error) {
-        console.error("Error generating professors:", error);
+        console.error("Error in professor generation:", error);
         toast.error("Failed to generate professors. Please try again.");
-        navigate("/pricing");
+        // Navigate back to the form page on error
+        navigate("/");
       }
     };
 
     // Start generation after a short delay to ensure loading animation is visible
     const timer = setTimeout(() => {
       generateProfessors();
-    }, 1000);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, [navigate]);
