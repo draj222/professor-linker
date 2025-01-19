@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { UniversitySearch } from "./UniversitySearch";
 import { UniversityList } from "./UniversityList";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface UniversitySelectorProps {
   onComplete?: () => void;
@@ -18,31 +24,9 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchUniversities();
-    fetchFavorites();
     matchUniversities();
+    fetchFavorites();
   }, []);
-
-  const fetchUniversities = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("universities")
-        .select("*")
-        .order("ranking", { ascending: true });
-
-      if (error) throw error;
-      setUniversities(data || []);
-    } catch (error) {
-      console.error("Error fetching universities:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load universities. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const matchUniversities = async () => {
     try {
@@ -84,12 +68,25 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
 
         return {
           ...university,
-          matchScore
+          matchScore: Math.min(matchScore, 100) // Cap at 100%
         };
       });
 
+      // Filter out universities with very low match scores (less than 20%)
+      const relevantMatches = matchedResults.filter(uni => uni.matchScore >= 20);
+
       // Sort by match score
-      const sortedMatches = matchedResults.sort((a, b) => b.matchScore - a.matchScore);
+      const sortedMatches = relevantMatches.sort((a, b) => b.matchScore - a.matchScore);
+      
+      if (sortedMatches.length === 0) {
+        toast({
+          title: "No Matches Found",
+          description: "We couldn't find universities matching your field. Please try adjusting your interests.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setMatchedUniversities(sortedMatches);
       setUniversities(sortedMatches);
 
@@ -99,6 +96,11 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
         await handleBatchFavorite(topMatches);
       }
 
+      toast({
+        title: "Universities Matched!",
+        description: `Found ${sortedMatches.length} universities matching your interests in ${fieldOfInterest}`,
+      });
+
     } catch (error) {
       console.error("Error matching universities:", error);
       toast({
@@ -106,6 +108,8 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
         description: "Failed to match universities. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -162,50 +166,18 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     }
   };
 
-  const handleSearch = async (query: string) => {
+  const handleFilterChange = async ({ value }: { value: string }) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("universities")
-        .select("*")
-        .ilike("name", `%${query}%`)
-        .order("ranking", { ascending: true });
-
-      if (error) throw error;
-      setUniversities(data || []);
-    } catch (error) {
-      console.error("Error searching universities:", error);
-      toast({
-        title: "Error",
-        description: "Failed to search universities. Please try again.",
-        variant: "destructive",
+      // Filter the existing matched universities instead of fetching new ones
+      const filtered = matchedUniversities.filter(uni => {
+        if (value === "high_match") return uni.matchScore >= 80;
+        if (value === "medium_match") return uni.matchScore >= 50 && uni.matchScore < 80;
+        if (value === "low_match") return uni.matchScore < 50;
+        return true;
       });
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleFilterChange = async ({ type, value }: { type: string; value: string }) => {
-    setLoading(true);
-    try {
-      let query = supabase.from("universities").select("*");
-
-      switch (type) {
-        case "region":
-          query = query.eq("region", value);
-          break;
-        case "focus":
-          query = query.contains("academic_focus", [value]);
-          break;
-        case "funding":
-          query = query.eq("research_funding_level", value);
-          break;
-      }
-
-      const { data, error } = await query.order("ranking", { ascending: true });
-
-      if (error) throw error;
-      setUniversities(data || []);
+      setUniversities(filtered);
     } catch (error) {
       console.error("Error filtering universities:", error);
       toast({
@@ -289,18 +261,31 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
         </h2>
         <p className="text-sm text-muted-foreground">
           Based on your interests in {localStorage.getItem("fieldOfInterest")}, 
-          we've automatically selected the best matching universities. 
-          You can adjust these selections using the filters below.
+          we've selected the best matching universities. Use the filter below to refine the matches.
         </p>
       </div>
 
-      <UniversitySearch onSearch={handleSearch} onFilterChange={handleFilterChange} />
+      <div className="flex justify-end mb-4">
+        <Select onValueChange={(value) => handleFilterChange({ value })}>
+          <SelectTrigger className="w-[180px] bg-white/5 border-white/10">
+            <SelectValue placeholder="Filter by match" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Matches</SelectItem>
+            <SelectItem value="high_match">High Match (80%+)</SelectItem>
+            <SelectItem value="medium_match">Medium Match (50-79%)</SelectItem>
+            <SelectItem value="low_match">Low Match (Below 50%)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <UniversityList
         universities={universities}
         onFavorite={handleFavorite}
         favorites={favorites}
         matchedUniversities={matchedUniversities}
       />
+      
       <div className="flex justify-center mt-8">
         <Button
           onClick={handleComplete}
