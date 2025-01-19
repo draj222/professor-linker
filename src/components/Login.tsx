@@ -42,13 +42,9 @@ export const Login = () => {
               inputLabelText: 'hsl(var(--muted-foreground))',
               inputPlaceholder: 'hsl(var(--muted-foreground))',
             },
-            borderWidths: {
-              buttonBorderWidth: '1px',
-              inputBorderWidth: '1px',
-            },
-            borderStyles: {
-              buttonBorderStyle: 'solid',
-              inputBorderStyle: 'solid',
+            space: {
+              buttonPadding: '0.5rem 1rem',
+              inputPadding: '0.5rem 1rem',
             },
             radii: {
               borderRadiusButton: '0.5rem',
