@@ -14,17 +14,18 @@ const Results = () => {
 
   useEffect(() => {
     const storedResults = localStorage.getItem("generatedProfessors");
+    const userPlanEmails = localStorage.getItem("selectedEmailCount");
+    
     if (storedResults) {
       const allResults = JSON.parse(storedResults);
-      const userPlanEmails = localStorage.getItem("selectedEmailCount");
       if (userPlanEmails) {
         const count = parseInt(userPlanEmails);
         console.log(`Using user selected email count: ${count}`);
         setNumberOfEmails(count);
-        setResults(allResults.slice(0, count));
+        setResults(allResults);
         setShowResults(true);
       } else {
-        console.log('No email count found in localStorage');
+        console.log('No email count found in localStorage, using default of 10');
         setResults(allResults);
       }
     }
@@ -36,12 +37,9 @@ const Results = () => {
     
     localStorage.setItem("selectedEmailCount", numberOfEmails.toString());
     
-    const selectedResults = allResults.slice(0, numberOfEmails);
-    console.log(`Selected ${selectedResults.length} professors for email generation`);
-    
-    setResults(selectedResults);
+    setResults(allResults);
     setShowResults(true);
-    toast.success(`Generated ${selectedResults.length} personalized emails`);
+    toast.success(`Generated ${numberOfEmails} personalized emails`);
   };
 
   if (!showResults) {

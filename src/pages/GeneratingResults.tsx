@@ -23,7 +23,7 @@ const GeneratingResults = () => {
         const { data, error } = await supabase.functions.invoke("getprofessors", {
           body: { 
             fieldOfInterest,
-            numberOfProfessors
+            numberOfProfessors: parseInt(selectedEmailCount || "10")
           }
         });
 
