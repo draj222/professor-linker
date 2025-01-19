@@ -8,8 +8,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const TIMEOUT_DURATION = 30000; // Increased to 30 seconds
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -27,6 +25,17 @@ serve(async (req) => {
     const count = parseInt(universityCount);
     console.log(`Generating ${count} universities for field: ${fieldOfInterest}, education level: ${educationLevel}`);
 
+    // Simplified and more focused prompt
+    const systemPrompt = `You are a university recommendation system. Generate exactly ${count} universities that excel in ${fieldOfInterest}${educationLevel ? ` for ${educationLevel} students` : ''}.
+    Return ONLY a JSON array with these exact fields:
+    - id (uuid v4)
+    - name (string)
+    - country (string)
+    - ranking (number, optional)
+    - academic_focus (string array)
+    - research_funding_level (string: 'high', 'medium', or 'low')
+    Example: [{"id":"uuid","name":"MIT","country":"USA","ranking":1,"academic_focus":["CS"],"research_funding_level":"high"}]`;
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -38,26 +47,12 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an AI that generates university suggestions based on academic interests and goals.
-            Return ONLY a raw JSON array of ${count} university objects.
-            NO markdown, NO backticks, NO additional text.
-            Each object must have these exact fields:
-            - id (string, uuid v4)
-            - name (string)
-            - country (string)
-            - ranking (number, optional)
-            - academic_focus (string array)
-            - research_funding_level (string: 'high', 'medium', or 'low')
-            Example format: [{"id": "uuid", "name": "MIT",...}]
-            Focus on universities that excel in the given field and are appropriate for the education level.`
-          },
-          {
-            role: 'user',
-            content: `Generate ${count} universities that excel in ${fieldOfInterest}${educationLevel ? ` and are suitable for ${educationLevel} students` : ''}. Return ONLY the JSON array.`
+            content: systemPrompt
           }
         ],
         temperature: 0.7,
-        max_tokens: 3000, // Increased token limit
+        max_tokens: 2000,
+        response_format: { type: "json_object" } // Force JSON response
       }),
     });
 
@@ -75,44 +70,53 @@ serve(async (req) => {
       throw new Error('Invalid response format from OpenAI');
     }
 
-    let content = data.choices[0].message.content;
-    console.log("Raw content from OpenAI:", content);
-
-    content = content
-      .replace(/```json\s*/g, '')
-      .replace(/```\s*/g, '')
-      .replace(/^\s*\[\s*/, '[')
-      .replace(/\s*\]\s*$/, ']')
-      .trim();
-
+    let universities;
     try {
-      const universities = JSON.parse(content);
+      const content = data.choices[0].message.content;
+      console.log("Raw content:", content);
       
-      if (!Array.isArray(universities)) {
-        console.error("Response is not an array:", universities);
-        throw new Error('Invalid response format: not an array');
+      // Handle both array and object wrapper cases
+      universities = typeof content === 'string' 
+        ? JSON.parse(content)
+        : content;
+      
+      // If the response is wrapped in an object, extract the array
+      if (!Array.isArray(universities) && universities.universities) {
+        universities = universities.universities;
       }
 
-      // Add match scores to universities based on field alignment
-      const universitiesWithScores = universities.map(uni => ({
-        ...uni,
-        matchScore: Math.floor(Math.random() * 30) + 70, // Random score between 70-100 for now
+      if (!Array.isArray(universities)) {
+        throw new Error('Response is not an array');
+      }
+
+      // Validate each university object
+      universities = universities.map(uni => ({
+        id: uni.id || crypto.randomUUID(),
+        name: uni.name,
+        country: uni.country,
+        ranking: uni.ranking || null,
+        academic_focus: Array.isArray(uni.academic_focus) ? uni.academic_focus : [fieldOfInterest],
+        research_funding_level: uni.research_funding_level || 'medium',
+        matchScore: Math.floor(Math.random() * 30) + 70 // Random score between 70-100
       }));
 
-      return new Response(JSON.stringify(universitiesWithScores), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      console.log(`Successfully processed ${universities.length} universities`);
 
-    } catch (error) {
-      console.error('Error parsing OpenAI response:', error);
-      throw new Error(`Error parsing OpenAI response: ${error.message}`);
+    } catch (parseError) {
+      console.error('Error parsing OpenAI response:', parseError);
+      throw new Error(`Failed to parse universities: ${parseError.message}`);
     }
-  } catch (error: any) {
+
+    return new Response(JSON.stringify(universities), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
     console.error('Error in getuniversities function:', error);
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: error.message || 'Failed to generate universities. Please try again.'
+        details: 'Failed to generate universities. Please try again.'
       }), 
       {
         status: 500,
