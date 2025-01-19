@@ -15,7 +15,7 @@ serve(async (req) => {
 
   try {
     console.log("🚀 Starting university generation request");
-    const { fieldOfInterest, educationLevel } = await req.json();
+    const { fieldOfInterest, educationLevel, universityCount = "6" } = await req.json();
     
     if (!fieldOfInterest) {
       console.error("❌ No field of interest provided");
@@ -27,104 +27,84 @@ serve(async (req) => {
       throw new Error('OpenAI API key is not configured');
     }
 
-    console.log(`📚 Generating universities for field: ${fieldOfInterest}`);
+    console.log(`📚 Generating ${universityCount} universities for field: ${fieldOfInterest}`);
 
-    const maxRetries = 3;
-    let attempt = 0;
-    let universities = null;
-
-    while (attempt < maxRetries && !universities) {
-      attempt++;
-      console.log(`🔄 Attempt ${attempt} of ${maxRetries}`);
-
-      try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
-            'Content-Type': 'application/json',
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a university recommendation system. Generate ${universityCount} real universities that excel in ${fieldOfInterest}${educationLevel ? ` for ${educationLevel} students` : ''}.
+            Return ONLY a JSON array of university objects.
+            Each object MUST have these exact fields:
+            - id (string, UUID format)
+            - name (string)
+            - country (string)
+            - ranking (number between 1-1000)
+            - academic_focus (array of strings)
+            - research_funding_level (string: 'high'/'medium'/'low')
+            Example: [{"id": "uuid", "name": "MIT", "country": "USA", "ranking": 1, "academic_focus": ["Computer Science"], "research_funding_level": "high"}]`
           },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-              {
-                role: 'system',
-                content: `Generate 6 real universities that excel in ${fieldOfInterest}${educationLevel ? ` for ${educationLevel} students` : ''}.
-                Return ONLY a JSON array of university objects with these fields:
-                - name (string)
-                - country (string)
-                - ranking (number, optional)
-                - academic_focus (string array)
-                - research_funding_level (string: 'high'/'medium'/'low')`
-              }
-            ],
-            temperature: 0.7
-          }),
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`❌ OpenAI API error (${response.status}):`, errorText);
-          throw new Error(`OpenAI API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("📦 Raw OpenAI response:", JSON.stringify(data, null, 2));
-
-        if (!data.choices?.[0]?.message?.content) {
-          console.error("❌ Invalid response format from OpenAI:", data);
-          throw new Error('Invalid response format from OpenAI');
-        }
-
-        let content = data.choices[0].message.content.trim();
-        console.log("🔍 Processing content:", content);
-
-        // Try to parse the content as JSON, handling different formats
-        try {
-          // If the content is wrapped in backticks or markdown, clean it
-          content = content.replace(/```json\s*|\s*```/g, '');
-          universities = JSON.parse(content);
-
-          if (!Array.isArray(universities)) {
-            if (universities.universities) {
-              universities = universities.universities;
-            } else {
-              throw new Error('Response is not an array');
-            }
+          {
+            role: 'user',
+            content: `Generate ${universityCount} universities specializing in ${fieldOfInterest}. Return ONLY the JSON array.`
           }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+      }),
+    });
 
-          // Validate each university object
-          universities = universities.map(uni => ({
-            id: crypto.randomUUID(),
-            name: uni.name || 'Unknown University',
-            country: uni.country || 'Unknown Country',
-            ranking: typeof uni.ranking === 'number' ? uni.ranking : null,
-            academic_focus: Array.isArray(uni.academic_focus) ? uni.academic_focus : [fieldOfInterest],
-            research_funding_level: ['high', 'medium', 'low'].includes(uni.research_funding_level?.toLowerCase()) 
-              ? uni.research_funding_level.toLowerCase() 
-              : 'medium',
-            matchScore: calculateMatchScore(uni, fieldOfInterest)
-          }));
-
-          console.log(`✅ Successfully processed ${universities.length} universities`);
-          break; // Exit the retry loop if successful
-        } catch (parseError) {
-          console.error(`❌ Failed to parse universities (attempt ${attempt}):`, parseError);
-          universities = null; // Reset to trigger retry
-        }
-      } catch (error) {
-        console.error(`❌ Error in attempt ${attempt}:`, error);
-        if (attempt === maxRetries) {
-          throw error;
-        }
-      }
+    if (!response.ok) {
+      console.error(`❌ OpenAI API error (${response.status}):`, await response.text());
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
-    if (!universities) {
-      throw new Error('Failed to generate valid universities after multiple attempts');
+    const data = await response.json();
+    console.log("📦 Raw OpenAI response:", JSON.stringify(data, null, 2));
+
+    if (!data.choices?.[0]?.message?.content) {
+      console.error("❌ Invalid response format from OpenAI:", data);
+      throw new Error('Invalid response format from OpenAI');
     }
 
-    return new Response(JSON.stringify(universities), {
+    let content = data.choices[0].message.content.trim();
+    console.log("🔍 Processing content:", content);
+
+    // Clean the content
+    content = content
+      .replace(/```json\s*|\s*```/g, '')
+      .trim();
+
+    const universities = JSON.parse(content);
+
+    if (!Array.isArray(universities)) {
+      console.error("❌ Response is not an array:", universities);
+      throw new Error('Invalid response format: not an array');
+    }
+
+    // Validate and normalize each university
+    const validatedUniversities = universities.map(uni => ({
+      id: uni.id || crypto.randomUUID(),
+      name: uni.name || 'Unknown University',
+      country: uni.country || 'Unknown Country',
+      ranking: typeof uni.ranking === 'number' ? Math.min(Math.max(1, uni.ranking), 1000) : 999,
+      academic_focus: Array.isArray(uni.academic_focus) ? uni.academic_focus : [fieldOfInterest],
+      research_funding_level: ['high', 'medium', 'low'].includes(uni.research_funding_level?.toLowerCase()) 
+        ? uni.research_funding_level.toLowerCase() 
+        : 'medium',
+      matchScore: calculateMatchScore(uni, fieldOfInterest)
+    }));
+
+    console.log(`✅ Successfully processed ${validatedUniversities.length} universities`);
+
+    return new Response(JSON.stringify(validatedUniversities), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
