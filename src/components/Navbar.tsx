@@ -1,9 +1,11 @@
-import { Home } from "lucide-react";
+import { Home, Moon, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileDropdown } from "./navbar/ProfileDropdown";
 import { FieldOfInterest } from "./navbar/FieldOfInterest";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "@/components/ThemeProvider";
 
 export const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -12,6 +14,7 @@ export const Navbar = () => {
     fieldOfInterest: "",
     name: "",
   });
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const getUserDetails = async () => {
@@ -75,6 +78,18 @@ export const Navbar = () => {
             </Link>
 
             <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                className="text-white hover:text-blue-200 transition-colors"
+              >
+                {theme === "light" ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
+              </Button>
               <FieldOfInterest 
                 initialValue={userDetails.fieldOfInterest}
                 onUpdate={handleFieldOfInterestUpdate}
