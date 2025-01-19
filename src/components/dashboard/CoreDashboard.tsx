@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Bell, Book, Mail, School, Search, Star, TrendingUp, Users } from "lucide-react";
+import { Bell, Book, Mail, School, Search, Star, TrendingUp, Users, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -136,62 +136,64 @@ export const CoreDashboard = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">Welcome to Your Research Dashboard</h1>
+      <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text animate-fade-in">
+        Welcome to Your Research Dashboard
+      </h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="bg-white/5 backdrop-blur-sm border border-white/10">
+        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 animate-float" style={{ animationDelay: '0.2s' }}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Email Success Rate</CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium bg-gradient-to-r from-blue-400 to-purple-400 text-transparent bg-clip-text">Email Success Rate</CardTitle>
+            <Mail className="h-4 w-4 text-purple-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-white">
               {emailStats.sent > 0 
                 ? ((emailStats.replied / emailStats.sent) * 100).toFixed(1)
                 : '0'}%
             </div>
             <Progress 
               value={emailStats.sent > 0 ? (emailStats.replied / emailStats.sent) * 100 : 0} 
-              className="mt-2"
+              className="mt-2 bg-purple-950 [&>div]:bg-gradient-to-r [&>div]:from-purple-400 [&>div]:to-pink-400"
             />
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-purple-200 mt-2">
               {emailStats.replied} replies from {emailStats.sent} emails
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 backdrop-blur-sm border border-white/10">
+        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-pink-500/20 animate-float" style={{ animationDelay: '0.4s' }}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Saved Professors</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium bg-gradient-to-r from-pink-400 to-red-400 text-transparent bg-clip-text">Saved Professors</CardTitle>
+            <Users className="h-4 w-4 text-pink-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{savedProfessors}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-white">{savedProfessors}</div>
+            <p className="text-xs text-pink-200">
               Click to view your saved professors
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 backdrop-blur-sm border border-white/10">
+        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 animate-float" style={{ animationDelay: '0.6s' }}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Recent Updates</CardTitle>
-            <Book className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium bg-gradient-to-r from-blue-400 to-cyan-400 text-transparent bg-clip-text">Recent Updates</CardTitle>
+            <Book className="h-4 w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{emailStats.opened}</div>
-            <p className="text-xs text-muted-foreground">Professors viewed your profile</p>
+            <div className="text-2xl font-bold text-white">{emailStats.opened}</div>
+            <p className="text-xs text-blue-200">Professors viewed your profile</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 backdrop-blur-sm border border-white/10">
+        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20 animate-float" style={{ animationDelay: '0.8s' }}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Saved Universities</CardTitle>
-            <School className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium bg-gradient-to-r from-green-400 to-emerald-400 text-transparent bg-clip-text">Saved Universities</CardTitle>
+            <School className="h-4 w-4 text-green-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{savedUniversities}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-white">{savedUniversities}</div>
+            <p className="text-xs text-green-200">
               Across various countries
             </p>
           </CardContent>
@@ -199,10 +201,10 @@ export const CoreDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card className="bg-white/5 backdrop-blur-sm border border-white/10">
+        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/20">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text">
+              <TrendingUp className="h-5 w-5 text-purple-400" />
               Match Rate Trends
             </CardTitle>
           </CardHeader>
@@ -210,97 +212,110 @@ export const CoreDashboard = () => {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={matchStats}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis dataKey="date" stroke="rgba(255,255,255,0.5)" />
+                  <YAxis stroke="rgba(255,255,255,0.5)" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(255,255,255,0.1)', 
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '8px',
+                      backdropFilter: 'blur(10px)'
+                    }} 
+                  />
                   <Line 
                     type="monotone" 
                     dataKey="rate" 
-                    stroke="hsl(var(--primary))" 
+                    stroke="url(#colorGradient)" 
                     strokeWidth={2}
                   />
+                  <defs>
+                    <linearGradient id="colorGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#9b87f5" />
+                      <stop offset="100%" stopColor="#D946EF" />
+                    </linearGradient>
+                  </defs>
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 backdrop-blur-sm border border-white/10">
+        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Star className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-pink-400 to-purple-400 text-transparent bg-clip-text">
+              <Sparkles className="h-5 w-5 text-pink-400" />
               Quick Actions
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-4">
             <button 
               onClick={() => handleQuickAction('find')}
-              className="p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors flex flex-col items-center gap-2"
+              className="p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm flex flex-col items-center gap-2 group"
             >
-              <Search className="h-6 w-6" />
-              <span>Find Professors</span>
+              <Search className="h-6 w-6 text-purple-400 group-hover:scale-110 transition-transform" />
+              <span className="text-white group-hover:text-purple-200 transition-colors">Find Professors</span>
             </button>
             <button 
               onClick={() => handleQuickAction('email')}
-              className="p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors flex flex-col items-center gap-2"
+              className="p-4 bg-gradient-to-br from-pink-500/10 to-purple-500/10 rounded-lg hover:from-pink-500/20 hover:to-purple-500/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm flex flex-col items-center gap-2 group"
             >
-              <Mail className="h-6 w-6" />
-              <span>Draft Email</span>
+              <Mail className="h-6 w-6 text-pink-400 group-hover:scale-110 transition-transform" />
+              <span className="text-white group-hover:text-pink-200 transition-colors">Draft Email</span>
             </button>
             <button 
               onClick={() => handleQuickAction('browse')}
-              className="p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors flex flex-col items-center gap-2"
+              className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-lg hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm flex flex-col items-center gap-2 group"
             >
-              <School className="h-6 w-6" />
-              <span>Browse Universities</span>
+              <School className="h-6 w-6 text-blue-400 group-hover:scale-110 transition-transform" />
+              <span className="text-white group-hover:text-blue-200 transition-colors">Browse Universities</span>
             </button>
             <button 
               onClick={() => handleQuickAction('notifications')}
-              className="p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors flex flex-col items-center gap-2"
+              className="p-4 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-lg hover:from-cyan-500/20 hover:to-blue-500/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm flex flex-col items-center gap-2 group"
             >
-              <Bell className="h-6 w-6" />
-              <span>Notifications</span>
+              <Bell className="h-6 w-6 text-cyan-400 group-hover:scale-110 transition-transform" />
+              <span className="text-white group-hover:text-cyan-200 transition-colors">Notifications</span>
             </button>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        <Card className="bg-white/5 backdrop-blur-sm border border-white/10">
+        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10">
           <CardHeader>
-            <CardTitle>Recent Updates</CardTitle>
+            <CardTitle className="bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text">Recent Updates</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {emailStats.opened > 0 && (
-                <div className="flex items-center gap-4 p-4 bg-white/5 rounded-lg">
+                <div className="flex items-center gap-4 p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-lg backdrop-blur-sm transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                   <Mail className="h-8 w-8 text-green-400" />
                   <div>
-                    <h3 className="font-medium">Email Activity</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-medium text-white">Email Activity</h3>
+                    <p className="text-sm text-green-200">
                       {emailStats.opened} professors viewed your emails
                     </p>
                   </div>
                 </div>
               )}
               {savedProfessors > 0 && (
-                <div className="flex items-center gap-4 p-4 bg-white/5 rounded-lg">
+                <div className="flex items-center gap-4 p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg backdrop-blur-sm transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                   <Users className="h-8 w-8 text-purple-400" />
                   <div>
-                    <h3 className="font-medium">Saved Professors</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-medium text-white">Saved Professors</h3>
+                    <p className="text-sm text-purple-200">
                       You have {savedProfessors} professors saved to your profile
                     </p>
                   </div>
                 </div>
               )}
               {savedUniversities > 0 && (
-                <div className="flex items-center gap-4 p-4 bg-white/5 rounded-lg">
+                <div className="flex items-center gap-4 p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-lg backdrop-blur-sm transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
                   <School className="h-8 w-8 text-blue-400" />
                   <div>
-                    <h3 className="font-medium">Saved Universities</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-medium text-white">Saved Universities</h3>
+                    <p className="text-sm text-blue-200">
                       You have {savedUniversities} universities in your favorites
                     </p>
                   </div>
