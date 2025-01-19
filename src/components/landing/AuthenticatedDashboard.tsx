@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, Mail, Search, User, CreditCard, ChartBar, Sparkles, Building, BookOpen } from "lucide-react";
+import { Package, Mail, Search, User, CreditCard, ChartBar, Sparkles, Building, BookOpen, Star } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
