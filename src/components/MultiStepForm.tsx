@@ -12,12 +12,14 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { BookOpen, GraduationCap, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface MultiStepFormProps {
-  onSubmit: () => void;
+  onSubmit?: () => void;
 }
 
 export const MultiStepForm = ({ onSubmit }: MultiStepFormProps) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fieldOfInterest: "",
     userName: "",
@@ -42,8 +44,8 @@ export const MultiStepForm = ({ onSubmit }: MultiStepFormProps) => {
     localStorage.setItem("researchExperience", formData.researchExperience);
     localStorage.setItem("academicGoals", formData.academicGoals);
     
-    // Call the onSubmit callback
-    onSubmit();
+    // Navigate to universities page
+    navigate('/universities');
   };
 
   const handleInputChange = (field: string, value: string) => {

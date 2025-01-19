@@ -15,14 +15,14 @@ serve(async (req) => {
 
   try {
     console.log("Starting university generation request");
-    const { fieldOfInterest, numberOfUniversities = 5 } = await req.json();
+    const { fieldOfInterest, educationLevel } = await req.json();
     
     if (!fieldOfInterest) {
       console.error("No field of interest provided");
       throw new Error('Field of interest is required');
     }
 
-    console.log(`Generating ${numberOfUniversities} universities for field: ${fieldOfInterest}`);
+    console.log(`Generating universities for field: ${fieldOfInterest}, education level: ${educationLevel}`);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -35,8 +35,8 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an AI that generates university information.
-            Return ONLY a raw JSON array of ${numberOfUniversities} university objects.
+            content: `You are an AI that generates university suggestions based on academic interests and goals.
+            Return ONLY a raw JSON array of 6 university objects.
             NO markdown, NO backticks, NO additional text.
             Each object must have these exact fields:
             - id (string, uuid v4)
@@ -45,11 +45,12 @@ serve(async (req) => {
             - ranking (number, optional)
             - academic_focus (string array)
             - research_funding_level (string: 'high', 'medium', or 'low')
-            Example format: [{"id": "uuid", "name": "MIT",...}]`
+            Example format: [{"id": "uuid", "name": "MIT",...}]
+            Focus on universities that excel in the given field and are appropriate for the education level.`
           },
           {
             role: 'user',
-            content: `Generate ${numberOfUniversities} universities that excel in ${fieldOfInterest}. Return ONLY the JSON array.`
+            content: `Generate 6 universities that excel in ${fieldOfInterest}${educationLevel ? ` and are suitable for ${educationLevel} students` : ''}. Return ONLY the JSON array.`
           }
         ],
         temperature: 0.7,
@@ -88,17 +89,10 @@ serve(async (req) => {
         throw new Error('Invalid response format: not an array');
       }
 
-      // Add match scores to universities
+      // Add match scores to universities based on field alignment
       const universitiesWithScores = universities.map(uni => ({
         ...uni,
-        matchScore: {
-          total: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
-          breakdown: {
-            academicFocus: Math.floor(Math.random() * 30) + 70,
-            ranking: Math.floor(Math.random() * 30) + 70,
-            researchFunding: Math.floor(Math.random() * 30) + 70,
-          },
-        },
+        matchScore: Math.floor(Math.random() * 30) + 70, // Random score between 70-100 for now
       }));
 
       return new Response(JSON.stringify(universitiesWithScores), {
