@@ -23,6 +23,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     const generateUniversities = async () => {
       const fieldOfInterest = localStorage.getItem("fieldOfInterest");
       const educationLevel = localStorage.getItem("educationLevel");
+      const universityCount = localStorage.getItem("universityCount") || "6";
       
       if (!fieldOfInterest) {
         toast({
@@ -40,6 +41,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
           body: { 
             fieldOfInterest,
             educationLevel,
+            universityCount
           }
         });
 
@@ -105,8 +107,14 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-[#9b87f5]" />
-        <p className="text-lg text-muted-foreground">Generating university suggestions...</p>
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#9b87f5]/30 to-[#D6BCFA]/30 blur-3xl -z-10" />
+          <Loader2 className="h-12 w-12 animate-spin text-[#9b87f5]" />
+        </div>
+        <p className="text-xl text-foreground font-medium">Discovering Perfect Universities...</p>
+        <p className="text-muted-foreground text-center max-w-md">
+          We're analyzing universities worldwide to find the best matches for your academic interests
+        </p>
       </div>
     );
   }

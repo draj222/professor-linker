@@ -15,14 +15,15 @@ serve(async (req) => {
 
   try {
     console.log("Starting university generation request");
-    const { fieldOfInterest, educationLevel } = await req.json();
+    const { fieldOfInterest, educationLevel, universityCount = "6" } = await req.json();
     
     if (!fieldOfInterest) {
       console.error("No field of interest provided");
       throw new Error('Field of interest is required');
     }
 
-    console.log(`Generating universities for field: ${fieldOfInterest}, education level: ${educationLevel}`);
+    const count = parseInt(universityCount);
+    console.log(`Generating ${count} universities for field: ${fieldOfInterest}, education level: ${educationLevel}`);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -36,7 +37,7 @@ serve(async (req) => {
           {
             role: 'system',
             content: `You are an AI that generates university suggestions based on academic interests and goals.
-            Return ONLY a raw JSON array of 6 university objects.
+            Return ONLY a raw JSON array of ${count} university objects.
             NO markdown, NO backticks, NO additional text.
             Each object must have these exact fields:
             - id (string, uuid v4)
@@ -50,7 +51,7 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: `Generate 6 universities that excel in ${fieldOfInterest}${educationLevel ? ` and are suitable for ${educationLevel} students` : ''}. Return ONLY the JSON array.`
+            content: `Generate ${count} universities that excel in ${fieldOfInterest}${educationLevel ? ` and are suitable for ${educationLevel} students` : ''}. Return ONLY the JSON array.`
           }
         ],
         temperature: 0.7,
