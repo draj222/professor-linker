@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { UniversitySearch } from "./UniversitySearch";
 import { UniversityList } from "./UniversityList";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,17 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
   const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  const generateUniversities = async () => {
+  // Cleanup function to abort any pending requests
+  const cleanup = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, []);
+
+  const generateUniversities = useCallback(async () => {
     const fieldOfInterest = localStorage.getItem("fieldOfInterest");
     const educationLevel = localStorage.getItem("educationLevel");
     const universityCount = localStorage.getItem("universityCount") || "6";
@@ -35,6 +44,12 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
       return;
     }
 
+    // Cleanup any existing requests
+    cleanup();
+
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
+
     setIsLoading(true);
     setUniversities([]); // Clear existing universities
     
@@ -42,7 +57,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
       console.log("Generating universities with field:", fieldOfInterest, "Attempt:", retryCount + 1);
       
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), 30000); // 30 second timeout
+        setTimeout(() => reject(new Error('Request timeout')), 30000);
       });
 
       const fetchPromise = supabase.functions.invoke('getuniversities', {
@@ -50,10 +65,17 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
           fieldOfInterest,
           educationLevel,
           universityCount
-        }
+        },
+        signal: abortControllerRef.current.signal,
       });
 
       const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+      // Check if the component was unmounted or a new request was started
+      if (abortControllerRef.current?.signal.aborted) {
+        console.log("Request was aborted");
+        return;
+      }
 
       if (error) throw error;
 
@@ -74,25 +96,29 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
         description: `Found ${data.length} universities matching your interests`,
       });
     } catch (error) {
-      console.error("Error generating universities:", error);
-      
-      let errorMessage = "Failed to generate university suggestions.";
-      if (error.message === 'Request timeout') {
-        errorMessage = "Request timed out. Please try again.";
+      // Only show error if the request wasn't aborted
+      if (!abortControllerRef.current?.signal.aborted) {
+        console.error("Error generating universities:", error);
+        
+        let errorMessage = "Failed to generate university suggestions.";
+        if (error.message === 'Request timeout') {
+          errorMessage = "Request timed out. Please try again.";
+        }
+        
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        
+        setUniversities([]);
       }
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      
-      // Reset loading state and clear universities on error
-      setUniversities([]);
     } finally {
-      setIsLoading(false);
+      if (!abortControllerRef.current?.signal.aborted) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [retryCount, toast, navigate, cleanup]);
 
   useEffect(() => {
     const initializeGeneration = async () => {
@@ -102,11 +128,16 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     };
     
     initializeGeneration();
-  }, [retryCount]); // Depend on retryCount to trigger regeneration
 
-  const handleRetry = () => {
+    // Cleanup on unmount
+    return () => {
+      cleanup();
+    };
+  }, [retryCount, generateUniversities, isLoading, cleanup]);
+
+  const handleRetry = useCallback(() => {
     setRetryCount(prev => prev + 1);
-  };
+  }, []);
 
   const handleComplete = async () => {
     if (favorites.length === 0) {
