@@ -83,15 +83,19 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
       // Save favorites to user's account if they're logged in
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        for (const universityId of favorites) {
-          await supabase
+        await Promise.all(favorites.map(universityId => 
+          supabase
             .from('user_favorite_universities')
             .upsert({ 
               user_id: user.id,
               university_id: universityId
-            });
-        }
+            })
+        ));
       }
+
+      // Store selected universities for professor generation
+      const selectedUniversities = universities.filter(u => favorites.includes(u.id));
+      localStorage.setItem('selectedUniversities', JSON.stringify(selectedUniversities));
 
       navigate('/generating');
     } catch (error) {

@@ -22,12 +22,13 @@ serve(async (req) => {
       throw new Error('Field of interest is required');
     }
 
-    if (!universities.length) {
-      console.error("No universities provided");
-      throw new Error('At least one university is required');
+    if (!universities || !Array.isArray(universities) || universities.length === 0) {
+      console.error("No universities provided or invalid format", universities);
+      throw new Error('At least one university is required and must be an array');
     }
 
     console.log(`Generating ${numberOfProfessors} professors for field: ${fieldOfInterest}`);
+    console.log("Using universities:", universities);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -36,7 +37,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
@@ -50,7 +51,10 @@ serve(async (req) => {
             - institution (string, must be one from the provided list)
             - recentWork (string)
             Example format: [{"name": "Dr. Smith",...}]
-            Only generate professors from these universities: ${universities.map(u => u.name).join(', ')}`
+            Only generate professors from these universities: ${universities.map(u => u.name).join(', ')}
+            Focus on professors who specialize in ${fieldOfInterest}.
+            Make sure to generate realistic but not too common names.
+            Ensure email addresses follow standard academic email formats.`
           },
           {
             role: 'user',
@@ -98,7 +102,7 @@ serve(async (req) => {
       // Add email templates to professors
       const professorsWithEmails = professors.map(prof => ({
         ...prof,
-        generatedEmail: `Dear Dr. ${prof.name},
+        generatedEmail: `Dear Dr. ${prof.name.split(' ').pop()},
 
 I hope this email finds you well. I am writing to express my sincere interest in your research work, particularly your recent contributions to ${prof.recentWork}. Your innovative approach and findings in this area align perfectly with my academic interests and career goals.
 
