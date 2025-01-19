@@ -18,7 +18,7 @@ export const UniversitySearch = ({ onResults }: UniversitySearchProps) => {
     if (!searchQuery.trim()) {
       toast({
         title: "Please enter a search term",
-        description: "Enter a university name or field of study to search",
+        description: "Enter a field of study or research area to search",
         variant: "destructive",
       });
       return;
@@ -26,22 +26,17 @@ export const UniversitySearch = ({ onResults }: UniversitySearchProps) => {
 
     setIsLoading(true);
     try {
-      console.log("Searching universities with query:", searchQuery);
+      console.log("Generating universities with query:", searchQuery);
       
-      let query = supabase
-        .from('universities')
-        .select('*');
-
-      // Search in name or academic focus
-      query = query.or(`name.ilike.%${searchQuery}%,academic_focus.cs.{${searchQuery}}`);
-
-      const { data, error } = await query;
+      const { data, error } = await supabase.functions.invoke('getuniversities', {
+        body: { fieldOfInterest: searchQuery }
+      });
 
       if (error) {
         throw error;
       }
 
-      console.log("Found universities:", data);
+      console.log("Generated universities:", data);
       
       if (!data || data.length === 0) {
         toast({
@@ -52,33 +47,21 @@ export const UniversitySearch = ({ onResults }: UniversitySearchProps) => {
         return;
       }
 
-      // Add match scores to universities (similar to professor matching)
-      const universitiesWithScores = data.map(uni => ({
-        ...uni,
-        matchScore: {
-          total: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
-          breakdown: {
-            academicFocus: Math.floor(Math.random() * 30) + 70,
-            ranking: Math.floor(Math.random() * 30) + 70,
-            researchFunding: Math.floor(Math.random() * 30) + 70,
-          },
-        },
-      }));
-
-      onResults(universitiesWithScores);
+      onResults(data);
       
       toast({
         title: "Universities found!",
-        description: `Found ${universitiesWithScores.length} universities matching your search`,
+        description: `Found ${data.length} universities matching your search`,
       });
 
     } catch (error) {
-      console.error("Error searching universities:", error);
+      console.error("Error generating universities:", error);
       toast({
         title: "Error",
-        description: "Failed to search universities. Please try again.",
+        description: "Failed to generate university suggestions. Please try again.",
         variant: "destructive",
       });
+      onResults([]);
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +73,7 @@ export const UniversitySearch = ({ onResults }: UniversitySearchProps) => {
         <div className="relative flex-1">
           <Input
             type="text"
-            placeholder="Search universities by name or field..."
+            placeholder="Enter a field of study (e.g., Computer Science, Biology)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -102,7 +85,7 @@ export const UniversitySearch = ({ onResults }: UniversitySearchProps) => {
           onClick={handleSearch}
           disabled={isLoading}
         >
-          {isLoading ? "Searching..." : "Search"}
+          {isLoading ? "Generating..." : "Generate"}
         </Button>
       </div>
     </div>
