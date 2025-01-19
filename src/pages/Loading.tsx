@@ -40,8 +40,8 @@ const Loading = () => {
         console.log("Successfully generated professors:", data);
         localStorage.setItem("generatedProfessors", JSON.stringify(data));
         
-        // Navigate to the generating results page
-        navigate("/generating");
+        // Navigate to the index page where the new dashboard will be shown
+        navigate("/");
 
       } catch (error) {
         console.error("Error in professor generation:", error);
