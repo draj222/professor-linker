@@ -14,28 +14,31 @@ serve(async (req) => {
   }
 
   try {
-    const { professor, fieldOfInterest } = await req.json();
-    console.log("Generating email for professor:", professor.name);
+    const { professor, template, tone, userData } = await req.json();
+    
+    const systemPrompt = `You are an expert at writing professional academic emails.
+    Your task is to generate a well-structured email that naturally incorporates the provided user information.
+    The email should maintain a ${tone} tone while seamlessly integrating the user's background and interests.
+    Follow these guidelines:
+    - Naturally weave in the user's experience and background
+    - Maintain proper paragraph structure and flow
+    - Ensure smooth transitions between topics
+    - Keep the tone ${tone} throughout
+    - Make specific connections between the user's background and the professor's research`;
 
-    const systemPrompt = `You are an expert at writing professional academic emails. 
-    Write a 200-word email to a professor expressing interest in their research.
-    The email should be formal, well-structured, and demonstrate knowledge of their work.
-    Always address the professor as "Dr." followed by their last name.
-    Use proper grammar and punctuation.
-    The tone should be professional and academic.
-    Include:
-    - A formal greeting
-    - A brief introduction
-    - Specific interest in their research
-    - Relevant background/qualifications
-    - A polite request for research opportunities
-    - A professional closing`;
-
-    const userPrompt = `Write an email to Dr. ${professor.name} at ${professor.institution}.
-    Their recent work focuses on: ${professor.recentWork}
-    Field of interest: ${fieldOfInterest}
-    The email should express interest in their research and potential collaboration opportunities.
-    Make it exactly 200 words.`;
+    const userPrompt = `Write an email to Professor ${professor.name} at ${professor.institution}.
+    
+    Template type: ${template}
+    Professor's recent work: ${professor.recentWork}
+    
+    User Information to integrate naturally:
+    - Name: ${userData.userName}
+    - Field of Interest: ${userData.fieldOfInterest}
+    - Education Level: ${userData.educationLevel}
+    - Research Experience: ${userData.researchExperience}
+    - Academic Goals: ${userData.academicGoals}
+    
+    Create a cohesive email that smoothly incorporates this information while maintaining focus on the professor's research interests.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
