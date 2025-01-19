@@ -4,7 +4,7 @@ import { UniversityList } from "./UniversityList";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Loader2, RefreshCw } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -21,7 +21,6 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
   const navigate = useNavigate();
   const isMounted = useRef(true);
 
-  // Cleanup function to check if component is mounted
   const cleanup = useCallback(() => {
     isMounted.current = false;
   }, []);
@@ -47,10 +46,10 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     setUniversities([]); // Clear existing universities
     
     try {
-      console.log("Generating universities with field:", fieldOfInterest, "Attempt:", retryCount + 1);
+      console.log("Generating universities with field:", fieldOfInterest);
       
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), 30000);
+        setTimeout(() => reject(new Error('Request timeout')), 15000); // Reduced timeout to 15 seconds
       });
 
       const fetchPromise = supabase.functions.invoke('getuniversities', {
@@ -63,7 +62,6 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
 
       const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
-      // Check if the component is still mounted
       if (!isMounted.current) return;
 
       if (error) throw error;
@@ -91,7 +89,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
         
         let errorMessage = "Failed to generate university suggestions.";
         if (error.message === 'Request timeout') {
-          errorMessage = "Request timed out. Please try again.";
+          errorMessage = "Request timed out. Please refresh the page to try again.";
         }
         
         toast({
@@ -118,7 +116,6 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     
     initializeGeneration();
 
-    // Cleanup on unmount
     return () => {
       cleanup();
     };
@@ -173,13 +170,6 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
         <p className="text-muted-foreground text-center max-w-md">
           We're analyzing universities worldwide to find the best matches for your academic interests
         </p>
-        <Button
-          variant="outline"
-          onClick={handleRetry}
-          className="mt-4"
-        >
-          Try Again
-        </Button>
       </div>
     );
   }
@@ -199,15 +189,6 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
                 Based on your academic interests and goals, we've found these universities that might be a great fit.
               </p>
             </div>
-            <Button
-              variant="outline"
-              onClick={handleRetry}
-              className="flex items-center gap-2 hover:bg-white/10"
-              disabled={isLoading}
-            >
-              <RefreshCw className="h-4 w-4" />
-              Regenerate
-            </Button>
           </div>
         </Card>
       </div>

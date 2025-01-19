@@ -25,16 +25,9 @@ serve(async (req) => {
     const count = parseInt(universityCount);
     console.log(`Generating ${count} universities for field: ${fieldOfInterest}, education level: ${educationLevel}`);
 
-    // Simplified and more focused prompt
-    const systemPrompt = `You are a university recommendation system. Generate exactly ${count} universities that excel in ${fieldOfInterest}${educationLevel ? ` for ${educationLevel} students` : ''}.
-    Return ONLY a JSON array with these exact fields:
-    - id (uuid v4)
-    - name (string)
-    - country (string)
-    - ranking (number, optional)
-    - academic_focus (string array)
-    - research_funding_level (string: 'high', 'medium', or 'low')
-    Example: [{"id":"uuid","name":"MIT","country":"USA","ranking":1,"academic_focus":["CS"],"research_funding_level":"high"}]`;
+    // Simplified and more focused prompt for faster generation
+    const systemPrompt = `Generate exactly ${count} universities that excel in ${fieldOfInterest}${educationLevel ? ` for ${educationLevel} students` : ''}.
+    Return ONLY a JSON array with these fields: id (uuid v4), name (string), country (string), ranking (number, optional), academic_focus (string array), research_funding_level (string: 'high'/'medium'/'low')`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -43,7 +36,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o-mini', // Using the faster mini model
         messages: [
           {
             role: 'system',
@@ -51,8 +44,8 @@ serve(async (req) => {
           }
         ],
         temperature: 0.7,
-        max_tokens: 2000,
-        response_format: { type: "json_object" } // Force JSON response
+        max_tokens: 1000, // Reduced for faster response
+        response_format: { type: "json_object" }
       }),
     });
 
@@ -75,12 +68,10 @@ serve(async (req) => {
       const content = data.choices[0].message.content;
       console.log("Raw content:", content);
       
-      // Handle both array and object wrapper cases
       universities = typeof content === 'string' 
         ? JSON.parse(content)
         : content;
       
-      // If the response is wrapped in an object, extract the array
       if (!Array.isArray(universities) && universities.universities) {
         universities = universities.universities;
       }
@@ -89,7 +80,6 @@ serve(async (req) => {
         throw new Error('Response is not an array');
       }
 
-      // Validate each university object
       universities = universities.map(uni => ({
         id: uni.id || crypto.randomUUID(),
         name: uni.name,
@@ -97,7 +87,7 @@ serve(async (req) => {
         ranking: uni.ranking || null,
         academic_focus: Array.isArray(uni.academic_focus) ? uni.academic_focus : [fieldOfInterest],
         research_funding_level: uni.research_funding_level || 'medium',
-        matchScore: Math.floor(Math.random() * 30) + 70 // Random score between 70-100
+        matchScore: Math.floor(Math.random() * 30) + 70
       }));
 
       console.log(`Successfully processed ${universities.length} universities`);
