@@ -46,7 +46,7 @@ const Results = () => {
 
   if (!showResults) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black">
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/80 text-foreground">
         <Navbar />
         <div className="max-w-7xl mx-auto pt-24 px-4">
           <div className="text-center mb-12 animate-fade-in">
@@ -116,7 +116,7 @@ const Results = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background/80 text-foreground">
       <Navbar />
       <div className="max-w-7xl mx-auto pt-24 px-4">
         <div className="text-center mb-12 animate-fade-in">
