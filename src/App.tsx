@@ -10,8 +10,6 @@ import Pricing from "./pages/Pricing";
 import Results from "./pages/Results";
 import GeneratingResults from "./pages/GeneratingResults";
 import LoginPage from "./pages/LoginPage";
-import Dashboard from "./pages/Dashboard";
-import ProfessorLibrary from "./pages/ProfessorLibrary";
 
 const queryClient = new QueryClient();
 
@@ -29,8 +27,6 @@ const App = () => (
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/generating" element={<GeneratingResults />} />
             <Route path="/results" element={<Results />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/library" element={<ProfessorLibrary />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
