@@ -30,63 +30,46 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
 
   const matchUniversities = async () => {
     try {
-      const fieldOfInterest = localStorage.getItem("fieldOfInterest")?.toLowerCase() || "";
-      console.log("Matching universities for field:", fieldOfInterest);
+      const fieldOfInterest = localStorage.getItem("fieldOfInterest") || "";
+      const userName = localStorage.getItem("userName") || "";
+      const educationLevel = localStorage.getItem("educationLevel") || "";
+      const researchExperience = localStorage.getItem("researchExperience") || "";
+      const academicGoals = localStorage.getItem("academicGoals") || "";
 
-      const { data, error } = await supabase
-        .from("universities")
-        .select("*")
-        .order("ranking", { ascending: true });
-
-      if (error) throw error;
-
-      // Calculate match score for each university
-      const matchedResults = (data || []).map(university => {
-        let matchScore = 0;
-        
-        // Match based on academic focus
-        if (university.academic_focus?.some(focus => 
-          focus.toLowerCase().includes(fieldOfInterest) || 
-          fieldOfInterest.includes(focus.toLowerCase())
-        )) {
-          matchScore += 50;
-        }
-
-        // Bonus points for research funding level
-        if (university.research_funding_level === "high") {
-          matchScore += 20;
-        } else if (university.research_funding_level === "medium") {
-          matchScore += 10;
-        }
-
-        // Bonus points for ranking
-        if (university.ranking && university.ranking <= 50) {
-          matchScore += 30;
-        } else if (university.ranking && university.ranking <= 100) {
-          matchScore += 20;
-        }
-
-        return {
-          ...university,
-          matchScore: Math.min(matchScore, 100) // Cap at 100%
-        };
+      console.log("Matching universities with profile:", {
+        fieldOfInterest,
+        educationLevel,
+        researchExperience,
+        academicGoals
       });
 
-      // Filter out universities with very low match scores (less than 20%)
-      const relevantMatches = matchedResults.filter(uni => uni.matchScore >= 20);
+      // Get AI-generated university matches using the Edge Function
+      const { data: aiMatches, error: aiError } = await supabase.functions.invoke('match-universities', {
+        body: {
+          fieldOfInterest,
+          educationLevel,
+          researchExperience,
+          academicGoals
+        }
+      });
 
-      // Sort by match score
-      const sortedMatches = relevantMatches.sort((a, b) => b.matchScore - a.matchScore);
-      
-      if (sortedMatches.length === 0) {
+      if (aiError) throw aiError;
+
+      console.log("AI-generated matches:", aiMatches);
+
+      if (!aiMatches || aiMatches.length === 0) {
         toast({
           title: "No Matches Found",
-          description: "We couldn't find universities matching your field. Please try adjusting your interests.",
+          description: "We couldn't find universities matching your profile. Please try adjusting your interests.",
           variant: "destructive",
         });
+        setLoading(false);
         return;
       }
 
+      // Sort matches by score
+      const sortedMatches = aiMatches.sort((a, b) => b.matchScore - a.matchScore);
+      
       setMatchedUniversities(sortedMatches);
       setUniversities(sortedMatches);
 
@@ -98,7 +81,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
 
       toast({
         title: "Universities Matched!",
-        description: `Found ${sortedMatches.length} universities matching your interests in ${fieldOfInterest}`,
+        description: `Found ${sortedMatches.length} universities matching your academic profile`,
       });
 
     } catch (error) {
@@ -247,7 +230,7 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
     return (
       <div className="text-center mt-8 space-y-4">
         <Sparkles className="animate-spin h-8 w-8 text-primary mx-auto" />
-        <div className="text-lg text-muted-foreground">Matching universities to your interests...</div>
+        <div className="text-lg text-muted-foreground">Analyzing your profile and finding the best university matches...</div>
       </div>
     );
   }
@@ -257,11 +240,11 @@ export const UniversitySelector = ({ onComplete }: UniversitySelectorProps) => {
       <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-lg p-4 mb-6">
         <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
-          Matched Universities
+          AI-Matched Universities
         </h2>
         <p className="text-sm text-muted-foreground">
-          Based on your interests in {localStorage.getItem("fieldOfInterest")}, 
-          we've selected the best matching universities. Use the filter below to refine the matches.
+          Based on your academic profile and interests in {localStorage.getItem("fieldOfInterest")}, 
+          we've used AI to find the best matching universities. Use the filter below to refine the matches.
         </p>
       </div>
 
