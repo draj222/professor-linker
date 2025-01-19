@@ -110,6 +110,7 @@ export const MultiStepForm = ({ onSubmit }: MultiStepFormProps) => {
                 <SelectValue placeholder="Select your education level" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="highschool">High School Student</SelectItem>
                 <SelectItem value="undergraduate">Undergraduate Student</SelectItem>
                 <SelectItem value="masters">Master's Student</SelectItem>
                 <SelectItem value="phd">PhD Student</SelectItem>

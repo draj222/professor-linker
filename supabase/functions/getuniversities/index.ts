@@ -36,6 +36,9 @@ serve(async (req) => {
           {
             role: 'system',
             content: `You are an AI that generates university suggestions based on academic interests and goals.
+            Focus on lesser-known but high-quality institutions that specialize in specific fields.
+            Avoid very popular or highly ranked universities (avoid top 20 globally ranked universities).
+            Prioritize universities known for unique programs or specialized research in specific fields.
             Return ONLY a raw JSON array of ${numberOfUniversities} university objects.
             NO markdown, NO backticks, NO additional text.
             Each object must have these exact fields:
@@ -50,7 +53,7 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: `Generate ${numberOfUniversities} universities that excel in ${fieldOfInterest}${educationLevel ? ` and are suitable for ${educationLevel} students` : ''}. Return ONLY the JSON array.`
+            content: `Generate ${numberOfUniversities} specialized, less commonly known universities that excel in ${fieldOfInterest}${educationLevel ? ` and are suitable for ${educationLevel} students` : ''}. Prioritize universities with unique programs or research focus. Return ONLY the JSON array.`
           }
         ],
         temperature: 0.7,

@@ -15,16 +15,16 @@ serve(async (req) => {
 
   try {
     console.log("Starting professor generation request");
-    const { fieldOfInterest, numberOfProfessors = 5 } = await req.json();
+    const { fieldOfInterest, numberOfProfessors = 5, universities = [] } = await req.json();
     
     if (!fieldOfInterest) {
       console.error("No field of interest provided");
       throw new Error('Field of interest is required');
     }
 
-    if (!openAIApiKey) {
-      console.error("OpenAI API key not configured");
-      throw new Error('OpenAI API key is not configured');
+    if (!universities.length) {
+      console.error("No universities provided");
+      throw new Error('At least one university is required');
     }
 
     console.log(`Generating ${numberOfProfessors} professors for field: ${fieldOfInterest}`);
@@ -47,13 +47,14 @@ serve(async (req) => {
             - name (string)
             - email (string)
             - position (string)
-            - institution (string)
+            - institution (string, must be one from the provided list)
             - recentWork (string)
-            Example format: [{"name": "Dr. Smith",...}]`
+            Example format: [{"name": "Dr. Smith",...}]
+            Only generate professors from these universities: ${universities.map(u => u.name).join(', ')}`
           },
           {
             role: 'user',
-            content: `Generate ${numberOfProfessors} professors in ${fieldOfInterest}. Return ONLY the JSON array.`
+            content: `Generate ${numberOfProfessors} professors in ${fieldOfInterest} who work at the following universities: ${universities.map(u => u.name).join(', ')}. Return ONLY the JSON array.`
           }
         ],
         temperature: 0.7,
@@ -63,18 +64,11 @@ serve(async (req) => {
     if (!response.ok) {
       const errorData = await response.text();
       console.error("OpenAI API error response:", errorData);
-      
-      if (response.status === 401) {
-        throw new Error('Invalid OpenAI API key');
-      } else if (response.status === 429) {
-        throw new Error('OpenAI API rate limit exceeded or insufficient credits');
-      } else {
-        throw new Error(`OpenAI API error: ${response.status}`);
-      }
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("Received response from OpenAI:", JSON.stringify(data, null, 2));
+    console.log("Received response from OpenAI");
 
     if (!data.choices?.[0]?.message?.content) {
       console.error("Invalid response format from OpenAI:", data);
@@ -84,15 +78,12 @@ serve(async (req) => {
     let content = data.choices[0].message.content;
     console.log("Raw content from OpenAI:", content);
 
-    // Clean the content more aggressively
     content = content
-      .replace(/```json\s*/g, '')  // Remove ```json
-      .replace(/```\s*/g, '')      // Remove remaining ```
-      .replace(/^\s*\[\s*/, '[')   // Clean start of array
-      .replace(/\s*\]\s*$/, ']')   // Clean end of array
+      .replace(/```json\s*/g, '')
+      .replace(/```\s*/g, '')
+      .replace(/^\s*\[\s*/, '[')
+      .replace(/\s*\]\s*$/, ']')
       .trim();
-
-    console.log("Cleaned content:", content);
 
     try {
       const professors = JSON.parse(content);
