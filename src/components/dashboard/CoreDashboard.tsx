@@ -2,28 +2,25 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Bell, Book, Mail, School, Search, Star, TrendingUp, Users, Sparkles } from "lucide-react";
+import { Bell, Book, Mail, School, Search, Star, TrendingUp, Users, Sparkles, Download, Share2, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-
-interface EmailStats {
-  sent: number;
-  opened: number;
-  replied: number;
-}
-
-interface MatchStats {
-  date: string;
-  rate: number;
-}
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const CoreDashboard = () => {
-  const [emailStats, setEmailStats] = useState<EmailStats>({ sent: 0, opened: 0, replied: 0 });
-  const [matchStats, setMatchStats] = useState<MatchStats[]>([]);
+  const [emailStats, setEmailStats] = useState({ sent: 0, opened: 0, replied: 0 });
+  const [matchStats, setMatchStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savedProfessors, setSavedProfessors] = useState(0);
   const [savedUniversities, setSavedUniversities] = useState(0);
+  const [selectedTimeRange, setSelectedTimeRange] = useState('week');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -78,13 +75,14 @@ export const CoreDashboard = () => {
         if (uniError) throw uniError;
         setSavedUniversities(uniCount || 0);
 
-        // Generate match rate data for the last 7 days
-        const matchData = Array.from({ length: 7 }, (_, i) => {
+        // Generate match rate data based on selected time range
+        const dataPoints = selectedTimeRange === 'week' ? 7 : selectedTimeRange === 'month' ? 30 : 12;
+        const matchData = Array.from({ length: dataPoints }, (_, i) => {
           const date = new Date();
-          date.setDate(date.getDate() - (6 - i));
+          date.setDate(date.getDate() - (dataPoints - 1 - i));
           return {
             date: date.toLocaleDateString(),
-            rate: Math.floor(65 + Math.random() * 20) // Simulated match rate
+            rate: Math.floor(65 + Math.random() * 20)
           };
         });
         setMatchStats(matchData);
@@ -102,7 +100,38 @@ export const CoreDashboard = () => {
     };
 
     fetchDashboardData();
-  }, [navigate, toast]);
+  }, [navigate, toast, selectedTimeRange]);
+
+  const handleExportData = () => {
+    const data = {
+      emailStats,
+      matchStats,
+      savedProfessors,
+      savedUniversities
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dashboard-data.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Data exported",
+      description: "Your dashboard data has been downloaded successfully.",
+    });
+  };
+
+  const handleShare = () => {
+    // Generate a shareable link or open a share dialog
+    toast({
+      title: "Share feature coming soon",
+      description: "You'll be able to share your dashboard insights with colleagues soon!",
+    });
+  };
 
   if (loading) {
     return (
@@ -112,33 +141,31 @@ export const CoreDashboard = () => {
     );
   }
 
-  const handleQuickAction = (action: string) => {
-    switch (action) {
-      case 'find':
-        navigate('/universities');
-        break;
-      case 'email':
-        navigate('/professors');
-        break;
-      case 'browse':
-        navigate('/universities');
-        break;
-      case 'notifications':
-        toast({
-          title: "Coming Soon",
-          description: "Notifications feature will be available soon!",
-        });
-        break;
-      default:
-        break;
-    }
-  };
-
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] text-transparent bg-clip-text animate-fade-in">
-        Welcome to Your Research Dashboard
-      </h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold text-white">
+          Research Dashboard
+        </h1>
+        <div className="flex gap-4">
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 hover:bg-white/10"
+            onClick={handleExportData}
+          >
+            <Download className="h-4 w-4" />
+            Export Data
+          </Button>
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 hover:bg-white/10"
+            onClick={handleShare}
+          >
+            <Share2 className="h-4 w-4" />
+            Share
+          </Button>
+        </div>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#9b87f5]/20 animate-float" style={{ animationDelay: '0.2s' }}>
@@ -207,6 +234,24 @@ export const CoreDashboard = () => {
               <TrendingUp className="h-5 w-5 text-[#9b87f5]" />
               Match Rate Trends
             </CardTitle>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Filter className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setSelectedTimeRange('week')}>
+                  Last Week
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSelectedTimeRange('month')}>
+                  Last Month
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSelectedTimeRange('year')}>
+                  Last Year
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -226,15 +271,9 @@ export const CoreDashboard = () => {
                   <Line 
                     type="monotone" 
                     dataKey="rate" 
-                    stroke="url(#colorGradient)" 
+                    stroke="#9b87f5" 
                     strokeWidth={2}
                   />
-                  <defs>
-                    <linearGradient id="colorGradient" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#9b87f5" />
-                      <stop offset="100%" stopColor="#D946EF" />
-                    </linearGradient>
-                  </defs>
                 </LineChart>
               </ResponsiveContainer>
             </div>

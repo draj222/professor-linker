@@ -8,16 +8,16 @@ import { useTheme } from "@/components/ThemeProvider";
 export const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [displayText, setDisplayText] = useState('');
-  const fullText = "The Smartest Way to Connect with Professors";
+  const [placeholderText, setPlaceholderText] = useState('');
+  const fullPlaceholderText = "Try: How to connect with professors in quantum computing?";
   const navigate = useNavigate();
   const { theme } = useTheme();
 
   useEffect(() => {
     let currentIndex = 0;
     const typingInterval = setInterval(() => {
-      if (currentIndex <= fullText.length) {
-        setDisplayText(fullText.slice(0, currentIndex));
+      if (currentIndex <= fullPlaceholderText.length) {
+        setPlaceholderText(fullPlaceholderText.slice(0, currentIndex));
         currentIndex++;
       } else {
         clearInterval(typingInterval);
@@ -54,10 +54,10 @@ export const HeroSection = () => {
         }`}>
           ResearchLink
         </h1>
-        <h2 className={`text-2xl md:text-3xl font-medium mb-6 min-h-[40px] ${
+        <h2 className={`text-2xl md:text-3xl font-medium mb-6 ${
           theme === 'light' ? 'text-gray-700' : 'text-gray-300'
         }`}>
-          {displayText}<span className="animate-pulse">|</span>
+          The Smartest Way to Connect with Professors
         </h2>
       </div>
       
@@ -67,7 +67,7 @@ export const HeroSection = () => {
             type="text" 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Try: How to connect with professors in quantum computing?"
+            placeholder={placeholderText}
             className={`w-full px-6 py-6 text-lg backdrop-blur-lg border-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500/50 transition-all ${
               theme === 'light' 
                 ? 'bg-white/80 text-gray-800' 
