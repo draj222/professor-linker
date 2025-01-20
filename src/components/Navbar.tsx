@@ -71,10 +71,13 @@ export const Navbar = () => {
           <div className="flex items-center justify-between h-16">
             <Link 
               to="/" 
-              className="flex items-center space-x-2 text-foreground hover:text-primary/80 transition-colors font-medium"
+              className="flex items-center space-x-2 text-foreground hover:text-primary/80 transition-colors"
             >
-              <Home className="h-5 w-5" />
-              <span>ResearchLink</span>
+              <img 
+                src="/lovable-uploads/5ab766c0-0ce8-49e6-afb2-85be053a6f87.png" 
+                alt="ResearchLink Logo" 
+                className="h-8 w-8"
+              />
             </Link>
 
             <div className="flex items-center space-x-4">

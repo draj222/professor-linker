@@ -13,8 +13,6 @@ export const Navigation = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
-      // Show nav when scrolling up, hide when scrolling down
       setIsVisible(currentScrollY < lastScrollY || currentScrollY < 50);
       setLastScrollY(currentScrollY);
     };
@@ -29,7 +27,11 @@ export const Navigation = () => {
     }`}>
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-20">
-          <div className="text-white text-xl font-bold">ResearchLink</div>
+          <img 
+            src="/lovable-uploads/5ab766c0-0ce8-49e6-afb2-85be053a6f87.png" 
+            alt="ResearchLink Logo" 
+            className="h-10 w-10"
+          />
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
