@@ -47,18 +47,18 @@ export const HeroSection = () => {
     <div className="text-center mb-16 animate-fade-in">
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-[#9b87f5]/30 to-[#6E59A5]/30 blur-3xl -z-10" />
-        <h1 className={`text-5xl md:text-7xl font-bold mb-6 ${
+        <h2 className={`text-5xl md:text-7xl font-bold mb-6 ${
           theme === 'light' 
             ? 'text-gray-800 bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600' 
             : 'text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300'
         }`}>
-          ResearchLink
-        </h1>
-        <h2 className={`text-2xl md:text-3xl font-medium mb-6 ${
-          theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-        }`}>
           The Smartest Way to Connect with Professors
         </h2>
+        <h1 className={`text-2xl md:text-3xl font-medium mb-6 ${
+          theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+        }`}>
+          ResearchLink
+        </h1>
       </div>
       
       <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto mb-12 animate-fade-in" style={{ animationDelay: '0.4s' }}>
