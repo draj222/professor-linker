@@ -29,7 +29,7 @@ export const Navigation = () => {
     }`}>
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-20">
-          <div className="text-white text-xl font-bold">Professor Linker</div>
+          <div className="text-white text-xl font-bold">ResearchLink</div>
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"

@@ -74,7 +74,7 @@ export const Navbar = () => {
               className="flex items-center space-x-2 text-foreground hover:text-primary/80 transition-colors font-medium"
             >
               <Home className="h-5 w-5" />
-              <span>Professor Linker</span>
+              <span>ResearchLink</span>
             </Link>
 
             <div className="flex items-center space-x-4">
