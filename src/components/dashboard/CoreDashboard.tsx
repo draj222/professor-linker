@@ -136,15 +136,15 @@ export const CoreDashboard = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text animate-fade-in">
+      <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] text-transparent bg-clip-text animate-fade-in">
         Welcome to Your Research Dashboard
       </h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 animate-float" style={{ animationDelay: '0.2s' }}>
+        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#9b87f5]/20 animate-float" style={{ animationDelay: '0.2s' }}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium bg-gradient-to-r from-blue-400 to-purple-400 text-transparent bg-clip-text">Email Success Rate</CardTitle>
-            <Mail className="h-4 w-4 text-purple-400" />
+            <CardTitle className="text-sm font-medium bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] text-transparent bg-clip-text">Email Success Rate</CardTitle>
+            <Mail className="h-4 w-4 text-[#9b87f5]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
@@ -154,46 +154,46 @@ export const CoreDashboard = () => {
             </div>
             <Progress 
               value={emailStats.sent > 0 ? (emailStats.replied / emailStats.sent) * 100 : 0} 
-              className="mt-2 bg-purple-950 [&>div]:bg-gradient-to-r [&>div]:from-purple-400 [&>div]:to-pink-400"
+              className="mt-2 bg-purple-950 [&>div]:bg-gradient-to-r [&>div]:from-[#9b87f5] [&>div]:to-[#7E69AB]"
             />
-            <p className="text-xs text-purple-200 mt-2">
+            <p className="text-xs text-[#9b87f5] mt-2">
               {emailStats.replied} replies from {emailStats.sent} emails
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-pink-500/20 animate-float" style={{ animationDelay: '0.4s' }}>
+        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#7E69AB]/20 animate-float" style={{ animationDelay: '0.4s' }}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium bg-gradient-to-r from-pink-400 to-red-400 text-transparent bg-clip-text">Saved Professors</CardTitle>
-            <Users className="h-4 w-4 text-pink-400" />
+            <CardTitle className="text-sm font-medium bg-gradient-to-r from-[#9b87f5] to-[#6E59A5] text-transparent bg-clip-text">Saved Professors</CardTitle>
+            <Users className="h-4 w-4 text-[#7E69AB]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{savedProfessors}</div>
-            <p className="text-xs text-pink-200">
+            <p className="text-xs text-[#7E69A5]">
               Click to view your saved professors
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 animate-float" style={{ animationDelay: '0.6s' }}>
+        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#6E59A5]/20 animate-float" style={{ animationDelay: '0.6s' }}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium bg-gradient-to-r from-blue-400 to-cyan-400 text-transparent bg-clip-text">Recent Updates</CardTitle>
-            <Book className="h-4 w-4 text-blue-400" />
+            <CardTitle className="text-sm font-medium bg-gradient-to-r from-[#7E69AB] to-[#6E59A5] text-transparent bg-clip-text">Recent Updates</CardTitle>
+            <Book className="h-4 w-4 text-[#6E59A5]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{emailStats.opened}</div>
-            <p className="text-xs text-blue-200">Professors viewed your profile</p>
+            <p className="text-xs text-[#6E59A5]">Professors viewed your profile</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20 animate-float" style={{ animationDelay: '0.8s' }}>
+        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#9b87f5]/20 animate-float" style={{ animationDelay: '0.8s' }}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium bg-gradient-to-r from-green-400 to-emerald-400 text-transparent bg-clip-text">Saved Universities</CardTitle>
-            <School className="h-4 w-4 text-green-400" />
+            <CardTitle className="text-sm font-medium bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] text-transparent bg-clip-text">Saved Universities</CardTitle>
+            <School className="h-4 w-4 text-[#9b87f5]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{savedUniversities}</div>
-            <p className="text-xs text-green-200">
+            <p className="text-xs text-[#9b87f5]">
               Across various countries
             </p>
           </CardContent>
@@ -201,10 +201,10 @@ export const CoreDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/20">
+        <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10 transform transition-all duration-500 hover:shadow-2xl hover:shadow-[#9b87f5]/20">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text">
-              <TrendingUp className="h-5 w-5 text-purple-400" />
+            <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] text-transparent bg-clip-text">
+              <TrendingUp className="h-5 w-5 text-[#9b87f5]" />
               Match Rate Trends
             </CardTitle>
           </CardHeader>
@@ -243,39 +243,39 @@ export const CoreDashboard = () => {
 
         <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-pink-400 to-purple-400 text-transparent bg-clip-text">
-              <Sparkles className="h-5 w-5 text-pink-400" />
+            <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] text-transparent bg-clip-text">
+              <Sparkles className="h-5 w-5 text-[#9b87f5]" />
               Quick Actions
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-4">
             <button 
               onClick={() => handleQuickAction('find')}
-              className="p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm flex flex-col items-center gap-2 group"
+              className="p-4 bg-gradient-to-br from-[#9b87f5]/10 to-[#6E59A5]/10 rounded-lg hover:from-[#9b87f5]/20 hover:to-[#6E59A5]/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm flex flex-col items-center gap-2 group"
             >
-              <Search className="h-6 w-6 text-purple-400 group-hover:scale-110 transition-transform" />
-              <span className="text-white group-hover:text-purple-200 transition-colors">Find Professors</span>
+              <Search className="h-6 w-6 text-[#9b87f5] group-hover:scale-110 transition-transform" />
+              <span className="text-white group-hover:text-[#9b87f5] transition-colors">Find Professors</span>
             </button>
             <button 
               onClick={() => handleQuickAction('email')}
-              className="p-4 bg-gradient-to-br from-pink-500/10 to-purple-500/10 rounded-lg hover:from-pink-500/20 hover:to-purple-500/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm flex flex-col items-center gap-2 group"
+              className="p-4 bg-gradient-to-br from-[#6E59A5]/10 to-[#9b87f5]/10 rounded-lg hover:from-[#6E59A5]/20 hover:to-[#9b87f5]/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm flex flex-col items-center gap-2 group"
             >
-              <Mail className="h-6 w-6 text-pink-400 group-hover:scale-110 transition-transform" />
-              <span className="text-white group-hover:text-pink-200 transition-colors">Draft Email</span>
+              <Mail className="h-6 w-6 text-[#6E59A5] group-hover:scale-110 transition-transform" />
+              <span className="text-white group-hover:text-[#6E59A5] transition-colors">Draft Email</span>
             </button>
             <button 
               onClick={() => handleQuickAction('browse')}
-              className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-lg hover:from-blue-500/20 hover:to-cyan-500/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm flex flex-col items-center gap-2 group"
+              className="p-4 bg-gradient-to-br from-[#9b87f5]/10 to-[#6E59A5]/10 rounded-lg hover:from-[#9b87f5]/20 hover:to-[#6E59A5]/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm flex flex-col items-center gap-2 group"
             >
-              <School className="h-6 w-6 text-blue-400 group-hover:scale-110 transition-transform" />
-              <span className="text-white group-hover:text-blue-200 transition-colors">Browse Universities</span>
+              <School className="h-6 w-6 text-[#9b87f5] group-hover:scale-110 transition-transform" />
+              <span className="text-white group-hover:text-[#9b87f5] transition-colors">Browse Universities</span>
             </button>
             <button 
               onClick={() => handleQuickAction('notifications')}
-              className="p-4 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-lg hover:from-cyan-500/20 hover:to-blue-500/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm flex flex-col items-center gap-2 group"
+              className="p-4 bg-gradient-to-br from-[#6E59A5]/10 to-[#9b87f5]/10 rounded-lg hover:from-[#6E59A5]/20 hover:to-[#9b87f5]/20 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm flex flex-col items-center gap-2 group"
             >
-              <Bell className="h-6 w-6 text-cyan-400 group-hover:scale-110 transition-transform" />
-              <span className="text-white group-hover:text-cyan-200 transition-colors">Notifications</span>
+              <Bell className="h-6 w-6 text-[#6E59A5] group-hover:scale-110 transition-transform" />
+              <span className="text-white group-hover:text-[#6E59A5] transition-colors">Notifications</span>
             </button>
           </CardContent>
         </Card>
@@ -284,7 +284,7 @@ export const CoreDashboard = () => {
       <div className="grid grid-cols-1 gap-6">
         <Card className="bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-lg border border-white/10">
           <CardHeader>
-            <CardTitle className="bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text">Recent Updates</CardTitle>
+            <CardTitle className="bg-gradient-to-r from-[#9b87f5] to-[#7E69AB] text-transparent bg-clip-text">Recent Updates</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -300,22 +300,22 @@ export const CoreDashboard = () => {
                 </div>
               )}
               {savedProfessors > 0 && (
-                <div className="flex items-center gap-4 p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg backdrop-blur-sm transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                  <Users className="h-8 w-8 text-purple-400" />
+                <div className="flex items-center gap-4 p-4 bg-gradient-to-br from-[#9b87f5]/10 to-[#6E59A5]/10 rounded-lg backdrop-blur-sm transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                  <Users className="h-8 w-8 text-[#9b87f5]" />
                   <div>
                     <h3 className="font-medium text-white">Saved Professors</h3>
-                    <p className="text-sm text-purple-200">
+                    <p className="text-sm text-[#9b87f5]">
                       You have {savedProfessors} professors saved to your profile
                     </p>
                   </div>
                 </div>
               )}
               {savedUniversities > 0 && (
-                <div className="flex items-center gap-4 p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-lg backdrop-blur-sm transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
-                  <School className="h-8 w-8 text-blue-400" />
+                <div className="flex items-center gap-4 p-4 bg-gradient-to-br from-[#6E59A5]/10 to-[#9b87f5]/10 rounded-lg backdrop-blur-sm transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+                  <School className="h-8 w-8 text-[#6E59A5]" />
                   <div>
                     <h3 className="font-medium text-white">Saved Universities</h3>
-                    <p className="text-sm text-blue-200">
+                    <p className="text-sm text-[#6E59A5]">
                       You have {savedUniversities} universities in your favorites
                     </p>
                   </div>

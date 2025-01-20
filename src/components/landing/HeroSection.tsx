@@ -2,14 +2,30 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "@/components/ThemeProvider";
 
 export const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [displayText, setDisplayText] = useState('');
+  const fullText = "The Smartest Way to Connect with Professors";
   const navigate = useNavigate();
   const { theme } = useTheme();
+
+  useEffect(() => {
+    let currentIndex = 0;
+    const typingInterval = setInterval(() => {
+      if (currentIndex <= fullText.length) {
+        setDisplayText(fullText.slice(0, currentIndex));
+        currentIndex++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 50);
+
+    return () => clearInterval(typingInterval);
+  }, []);
 
   const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,20 +46,20 @@ export const HeroSection = () => {
   return (
     <div className="text-center mb-16 animate-fade-in">
       <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-pink-500/30 blur-3xl -z-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#9b87f5]/30 to-[#6E59A5]/30 blur-3xl -z-10" />
         <h1 className={`text-5xl md:text-7xl font-bold mb-6 ${
           theme === 'light' 
             ? 'text-gray-800 bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600' 
             : 'text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300'
         }`}>
-          The Smartest Way to Connect with Professors
+          ResearchLink
         </h1>
+        <h2 className={`text-2xl md:text-3xl font-medium mb-6 min-h-[40px] ${
+          theme === 'light' ? 'text-gray-700' : 'text-gray-300'
+        }`}>
+          {displayText}<span className="animate-pulse">|</span>
+        </h2>
       </div>
-      <p className={`text-xl max-w-2xl mx-auto mb-8 animate-fade-in ${
-        theme === 'light' ? 'text-gray-700' : 'text-gray-300'
-      }`} style={{ animationDelay: '0.2s' }}>
-        All-in-one AI tools for students and researchers to find and connect with leading academics in their field.
-      </p>
       
       <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto mb-12 animate-fade-in" style={{ animationDelay: '0.4s' }}>
         <div className="relative transform transition-all duration-300 hover:scale-[1.02]">
