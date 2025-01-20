@@ -133,6 +133,28 @@ export const CoreDashboard = () => {
     });
   };
 
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'find':
+        navigate('/search');
+        break;
+      case 'email':
+        navigate('/email-templates');
+        break;
+      case 'browse':
+        navigate('/universities');
+        break;
+      case 'notifications':
+        toast({
+          title: "Coming Soon",
+          description: "Notifications feature will be available in the next update!",
+        });
+        break;
+      default:
+        break;
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
