@@ -38,12 +38,15 @@ const Index = () => {
           variant: "destructive"
         });
       } finally {
+        // Always set loading to false, even if there's an error
         setLoading(false);
       }
     };
 
+    // Initial auth check
     checkAuth();
 
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event);
       setUser(session?.user ?? null);
@@ -52,6 +55,8 @@ const Index = () => {
       } else {
         setPlanInfo(null);
       }
+      // Ensure loading is false after auth state changes
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -92,13 +97,11 @@ const Index = () => {
     navigate('/pricing');
   };
 
+  // Show a simple loading spinner while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-background/80 text-foreground pt-16">
-        <Navbar />
-        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
-          <div className="text-xl">Loading...</div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/80 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
