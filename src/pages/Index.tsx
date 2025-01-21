@@ -22,44 +22,57 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    // Initial session check
+    const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('Current session:', session);
-        setUser(session?.user ?? null);
+        // Get the current session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
+        }
+
+        console.log('Initial session check:', session);
+        
         if (session?.user) {
+          setUser(session.user);
           await fetchUserPlan(session.user.id);
         }
       } catch (error) {
-        console.error('Error checking auth:', error);
+        console.error('Error checking initial session:', error);
         toast({
           title: "Error",
           description: "Failed to check authentication status",
           variant: "destructive"
         });
       } finally {
-        // Always set loading to false, even if there's an error
         setLoading(false);
       }
     };
 
-    // Initial auth check
-    checkAuth();
+    // Run the initial session check
+    initializeAuth();
 
-    // Set up auth state listener
+    // Set up auth state listener for future changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event);
-      setUser(session?.user ?? null);
+      console.log('Auth state changed:', event, session);
+      
       if (session?.user) {
+        setUser(session.user);
         await fetchUserPlan(session.user.id);
       } else {
+        setUser(null);
         setPlanInfo(null);
       }
-      // Ensure loading is false after auth state changes
+      
+      // Make sure loading is false after auth state changes
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [toast]);
 
   const fetchUserPlan = async (userId) => {
@@ -97,7 +110,7 @@ const Index = () => {
     navigate('/pricing');
   };
 
-  // Show a simple loading spinner while checking auth
+  // Show loading spinner while checking auth
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-background/80 flex items-center justify-center">
