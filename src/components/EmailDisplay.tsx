@@ -88,6 +88,22 @@ export const EmailDisplay = ({ professor, onCopy, onSend, isSending }: EmailDisp
     toast.success(`Email tone updated to ${value}`);
   };
 
+  const handleSendEmail = async () => {
+    if (!professor) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const userEmail = user?.email;
+
+    if (!userEmail) {
+      toast.error("Please sign in to send emails");
+      return;
+    }
+
+    const mailtoLink = `mailto:${professor.email}?subject=Research Opportunity Inquiry&body=${encodeURIComponent(emailContent)}&from=${encodeURIComponent(userEmail)}`;
+    window.location.href = mailtoLink;
+    onSend(); // Keep the original onSend callback for any additional functionality
+  };
+
   if (!professor) {
     return (
       <div className="h-full flex items-center justify-center text-muted-foreground">
@@ -142,7 +158,7 @@ export const EmailDisplay = ({ professor, onCopy, onSend, isSending }: EmailDisp
         <TabsContent value="preview" className="mt-4">
           <div className="prose prose-sm">
             <ScrollArea className="h-[320px] pr-4">
-              <div className="space-y-2 font-mono"> {/* Added font-mono class for Courier New */}
+              <div className="space-y-2 font-mono">
                 <p><strong>To:</strong> {professor?.email}</p>
                 <p><strong>Subject:</strong> Research Opportunity Inquiry</p>
                 <div className="mt-4">
@@ -156,7 +172,7 @@ export const EmailDisplay = ({ professor, onCopy, onSend, isSending }: EmailDisp
         </TabsContent>
         <TabsContent value="edit" className="mt-4">
           <textarea
-            className="w-full h-[320px] p-4 rounded-md bg-background border resize-none font-mono" // Added font-mono class
+            className="w-full h-[320px] p-4 rounded-md bg-background border resize-none font-mono"
             value={emailContent}
             onChange={(e) => setEmailContent(e.target.value)}
           />
@@ -172,7 +188,7 @@ export const EmailDisplay = ({ professor, onCopy, onSend, isSending }: EmailDisp
           Copy Email
         </Button>
         <Button
-          onClick={onSend}
+          onClick={handleSendEmail}
           className="flex-1"
           disabled={isSending}
         >
