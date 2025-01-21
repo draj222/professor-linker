@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from './ThemeProvider';
 import { EmailVerification } from './EmailVerification';
+import { AuthChangeEvent } from '@supabase/supabase-js';
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -12,10 +13,10 @@ export const Login = () => {
   const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session) => {
       console.log('Auth state changed:', event, session);
       
-      if (event === 'USER_SIGNED_UP' && !session?.user.email_confirmed_at) {
+      if (event === 'SIGNED_UP' && !session?.user.email_confirmed_at) {
         console.log('New signup, waiting for email verification');
         setVerificationEmail(session?.user.email || null);
         return;
