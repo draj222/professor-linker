@@ -26,6 +26,7 @@ const Index = () => {
 
     const initializeAuth = async () => {
       try {
+        console.log('Initializing auth...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -51,6 +52,7 @@ const Index = () => {
         });
       } finally {
         if (mounted) {
+          console.log('Setting loading to false');
           setLoading(false);
         }
       }
@@ -84,6 +86,7 @@ const Index = () => {
 
   const fetchUserPlan = async (userId) => {
     try {
+      console.log('Fetching user plan for:', userId);
       const { data, error } = await supabase
         .from('user_plans')
         .select('*')
@@ -121,7 +124,10 @@ const Index = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-background/80 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="text-sm text-muted-foreground">Loading your session...</p>
+        </div>
       </div>
     );
   }
