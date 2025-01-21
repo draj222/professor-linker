@@ -22,31 +22,37 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initial session check
+    let mounted = true;
+
     const initializeAuth = async () => {
       try {
-        // Get the current session
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          throw error;
-        }
+        // Get the persisted session from localStorage first
+        const persistedSession = localStorage.getItem('supabase.auth.token');
+        if (persistedSession) {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Error retrieving session:', error);
+            throw error;
+          }
 
-        console.log('Initial session check:', session);
-        
-        if (session?.user) {
-          setUser(session.user);
-          await fetchUserPlan(session.user.id);
+          if (session?.user && mounted) {
+            console.log('Retrieved persisted session for user:', session.user.id);
+            setUser(session.user);
+            await fetchUserPlan(session.user.id);
+          }
         }
       } catch (error) {
-        console.error('Error checking initial session:', error);
+        console.error('Error during initialization:', error);
         toast({
           title: "Error",
-          description: "Failed to check authentication status",
+          description: "Failed to restore your session. Please try logging in again.",
           variant: "destructive"
         });
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -57,20 +63,25 @@ const Index = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session);
       
-      if (session?.user) {
-        setUser(session.user);
-        await fetchUserPlan(session.user.id);
-      } else {
-        setUser(null);
-        setPlanInfo(null);
+      if (mounted) {
+        if (session?.user) {
+          setUser(session.user);
+          // Store session in localStorage for persistence
+          localStorage.setItem('supabase.auth.token', JSON.stringify(session));
+          await fetchUserPlan(session.user.id);
+        } else {
+          setUser(null);
+          setPlanInfo(null);
+          // Clear session from localStorage
+          localStorage.removeItem('supabase.auth.token');
+        }
+        setLoading(false);
       }
-      
-      // Make sure loading is false after auth state changes
-      setLoading(false);
     });
 
-    // Cleanup subscription on unmount
+    // Cleanup function
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [toast]);
