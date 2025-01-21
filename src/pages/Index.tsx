@@ -12,6 +12,7 @@ import { CoreDashboard } from '@/components/dashboard/CoreDashboard';
 import { Button } from '@/components/ui/button';
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/components/ui/use-toast";
+import { CookieConsent } from '@/components/CookieConsent';
 
 const Index = () => {
   const [user, setUser] = useState(null);
@@ -26,6 +27,18 @@ const Index = () => {
 
     const initializeAuth = async () => {
       try {
+        // Check if cookies are accepted
+        const cookieConsent = localStorage.getItem('cookieConsent');
+        console.log('Cookie consent status:', cookieConsent);
+        
+        if (!cookieConsent) {
+          console.log('Cookies not accepted yet, skipping auth initialization');
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
         console.log('Initializing auth...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
@@ -152,11 +165,11 @@ const Index = () => {
             </Button>
           </div>
         </div>
+        <CookieConsent />
       </div>
     );
   }
 
-  // If user is authenticated but showing profile form
   if (showProfileForm) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
