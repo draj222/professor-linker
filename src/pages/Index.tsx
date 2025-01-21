@@ -26,21 +26,21 @@ const Index = () => {
 
     const initializeAuth = async () => {
       try {
-        // Get the persisted session from localStorage first
-        const persistedSession = localStorage.getItem('supabase.auth.token');
-        if (persistedSession) {
-          const { data: { session }, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            console.error('Error retrieving session:', error);
-            throw error;
-          }
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error retrieving session:', error);
+          throw error;
+        }
 
-          if (session?.user && mounted) {
-            console.log('Retrieved persisted session for user:', session.user.id);
-            setUser(session.user);
-            await fetchUserPlan(session.user.id);
-          }
+        if (session?.user && mounted) {
+          console.log('Retrieved session for user:', session.user.id);
+          setUser(session.user);
+          await fetchUserPlan(session.user.id);
+        } else {
+          console.log('No active session found');
+          setUser(null);
+          setPlanInfo(null);
         }
       } catch (error) {
         console.error('Error during initialization:', error);
@@ -66,14 +66,10 @@ const Index = () => {
       if (mounted) {
         if (session?.user) {
           setUser(session.user);
-          // Store session in localStorage for persistence
-          localStorage.setItem('supabase.auth.token', JSON.stringify(session));
           await fetchUserPlan(session.user.id);
         } else {
           setUser(null);
           setPlanInfo(null);
-          // Clear session from localStorage
-          localStorage.removeItem('supabase.auth.token');
         }
         setLoading(false);
       }
