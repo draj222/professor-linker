@@ -1,25 +1,42 @@
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from './ThemeProvider';
+import { EmailVerification } from './EmailVerification';
 
 export const Login = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session);
-      if (session) {
-        console.log('User logged in, redirecting to dashboard');
+      
+      if (event === 'USER_SIGNED_UP' && !session?.user.email_confirmed_at) {
+        console.log('New signup, waiting for email verification');
+        setVerificationEmail(session?.user.email || null);
+        return;
+      }
+
+      if (session?.user.email_confirmed_at) {
+        console.log('User verified and logged in, redirecting to dashboard');
         navigate('/', { replace: true });
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  if (verificationEmail) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <EmailVerification email={verificationEmail} />
+      </div>
+    );
+  }
 
   return (
     <Auth
